@@ -1,0 +1,249 @@
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    padding: 20px;
+    color: #333;
+  }
+  
+  .container {
+    width: 300px;
+  }
+  
+  h2 {
+    margin-top: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #E5E5E5;
+    border-radius: 4px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  button {
+    margin-top: 20px;
+    background-color: #18A0FB;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  button:hover {
+    background-color: #0D8EE4;
+  }
+  
+  .error {
+    color: #F24822;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  
+  .template-selection {
+    margin-bottom: 20px;
+  }
+  
+  .radio-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 8px;
+  }
+  
+  .radio-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .radio-option input {
+    margin-right: 6px;
+    width: auto;
+  }
+  
+  .tabs {
+    display: flex;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #E5E5E5;
+  }
+  
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .tab.active {
+    border-bottom: 2px solid #18A0FB;
+    color: #18A0FB;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+</style>
+
+<div class="container">
+  <h2>Dub News Generator</h2>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="manual">Manual Input</div>
+    <div class="tab" data-tab="paste">Paste from App</div>
+  </div>
+  
+  <!-- Manual Input Tab -->
+  <div class="tab-content active" id="manual-tab">
+    <div class="template-selection">
+      <label>Select Template Type:</label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="template-type" value="breaking" checked> Breaking News
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="template-type" value="non-breaking"> Non-Breaking News
+        </label>
+      </div>
+    </div>
+    
+    <label for="headline">Headline</label>
+    <input type="text" id="headline" placeholder="Enter news headline...">
+    
+    <label for="body">Body Text</label>
+    <textarea id="body" placeholder="Enter body text..."></textarea>
+    
+    <button id="create-post">Create Post</button>
+  </div>
+  
+  <!-- Paste from App Tab -->
+  <div class="tab-content" id="paste-tab">
+    <p>Paste content generated from the Dub News Python app:</p>
+    <textarea id="paste-area" placeholder="Paste the formatted content here..." rows="10"></textarea>
+    <button id="parse-content">Parse & Create Post</button>
+    <div id="parse-result"></div>
+  </div>
+  
+  <div id="error" class="error"></div>
+</div>
+
+<script>
+  // Tab switching functionality
+  const tabs = document.querySelectorAll('.tab');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      tab.classList.add('active');
+      document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+    });
+  });
+  
+  // Manual post creation
+  document.getElementById('create-post').onclick = () => {
+    const headline = document.getElementById('headline').value;
+    const body = document.getElementById('body').value;
+    const templateType = document.querySelector('input[name="template-type"]:checked').value;
+    
+    if (!headline || !body) {
+      document.getElementById('error').textContent = 'Please fill in both headline and body text.';
+      return;
+    }
+    
+    createPost(headline, body, templateType);
+  };
+  
+  // Parse pasted content and create post
+  document.getElementById('parse-content').onclick = () => {
+    const pastedContent = document.getElementById('paste-area').value;
+    const parseResult = parseFormattedContent(pastedContent);
+    
+    if (parseResult.error) {
+      document.getElementById('error').textContent = parseResult.error;
+      document.getElementById('parse-result').textContent = '';
+      return;
+    }
+    
+    document.getElementById('error').textContent = '';
+    document.getElementById('parse-result').textContent = 'Content parsed successfully! Creating post...';
+    
+    createPost(parseResult.headline, parseResult.body, parseResult.templateType);
+  };
+  
+  // Function to parse the formatted content
+  function parseFormattedContent(content) {
+    try {
+      // Check if content has the expected format
+      if (!content.includes('DUB_NEWS_DATA_START') || !content.includes('DUB_NEWS_DATA_END')) {
+        return { error: 'Invalid content format. Please paste the complete output from the app.' };
+      }
+      
+      // Extract data between markers
+      const dataSection = content.split('DUB_NEWS_DATA_START')[1].split('DUB_NEWS_DATA_END')[0];
+      const lines = dataSection.trim().split('\n');
+      
+      // Initialize result object
+      const result = {};
+      
+      // Parse each line
+      for (const line of lines) {
+        if (line.startsWith('TEMPLATE_TYPE:')) {
+          result.templateType = line.replace('TEMPLATE_TYPE:', '').trim();
+        } else if (line.startsWith('HEADLINE:')) {
+          result.headline = line.replace('HEADLINE:', '').trim();
+        } else if (line.startsWith('BODY:')) {
+          result.body = line.replace('BODY:', '').trim();
+        } else if (line.startsWith('INSTAGRAM:')) {
+          result.instagram = line.replace('INSTAGRAM:', '').trim();
+        }
+      }
+      
+      // Validate required fields
+      if (!result.templateType || !result.headline || !result.body) {
+        return { error: 'Missing required fields in the parsed content.' };
+      }
+      
+      return result;
+    } catch (error) {
+      return { error: 'Error parsing content: ' + error.message };
+    }
+  }
+  
+  // Function to create post (common for both methods)
+  function createPost(headline, body, templateType) {
+    parent.postMessage({
+      pluginMessage: {
+        type: 'create-post',
+        headline,
+        body,
+        templateType
+      }
+    }, '*');
+  }
+</script> 
