@@ -11,13 +11,15 @@ load_dotenv()
 # Get API key from environment variables or let user input it
 api_key = os.getenv("OPENAI_API_KEY", "")
 
-# The default system prompt
+# The default system prompt for Instagram post
 DEFAULT_PROMPT = """
-Breaking Headline: Create a clear, engaging, informational headline.
-70-Word Narrative: Summarize the news article in a single, cohesive 70-word paragraph.
+Breaking Headline: Create a clear, engaging, informational headline that captures the essence of the news article within 10 words.
+70-Word Narrative: Summarize the news article in a single, cohesive 70-word paragraph. Then add 2 paragraph breaks to
+    split the summary into 3 paragraphs approximately equal in length. Make sure to add paragraphs breaks only at the end of sentences.
 40-Word Instagram Caption: Write a 40-word caption for an Instagram post.
+Source Identification: Identify the source of the news article (e.g., Bloomberg, Reuters, CNBC). If the source is a social media post, format it as "Platform, @USERNAME" (e.g., "X, @username" or "Truth Social, @username").
 
-Guidelines:
+Writing Guidelines:
 - Include all important numbers and stats from the article using only the provided data.
 - Do not hallucinate or use any outside statistics or hashtags.
 - Use clear, simple language and grammar suitable for Instagram readers.
@@ -26,23 +28,61 @@ Guidelines:
 - Since the input may contain entire website information, distinguish between the actual
   news text and distracting ads or irrelevant information, and focus solely on the relevant news content.
 
+Post Writing Guidelines:
+- Proofread the article for any errors or inconsistencies.
+- Ensure the post is engaging, informative, and easy to understand.
+
 Return a JSON response with exactly this structure:
 {
   "isBreaking": boolean,
   "headline": string,
   "body": string,
-  "instagramCaption": string
+  "instagramCaption": string,
+  "source": string
 }
 """
 
-def format_for_figma(headline, body, instagram_caption, is_breaking, use_cta=False, cta_type=""):
+# The Instagram story prompt
+STORY_PROMPT = """
+Breaking Headline: Create a clear, engaging, informational headline that captures the essence of the news article.
+70-Word Narrative: Summarize the news article in a single, cohesive 70-word paragraph. Then add 2 paragraph breaks to split the summary into 3 paragraphs approximately equal in length. Make sure to add paragraphs breaks only at the end of sentences.
+Source Identification: Identify the source of the news article (e.g., Bloomberg, Reuters, CNBC). If the source is a social media post, format it as "Platform, @USERNAME" (e.g., "X, @username" or "Truth Social, @username").
+
+Writing Guidelines:
+- Include all important numbers and stats from the article using only the provided data.
+- Do not hallucinate or use any outside statistics or hashtags.
+- Use clear, simple language and grammar suitable for Instagram readers.
+- Maintain an informational and engaging tone without being overly cringy.
+- When using complex or policy-related terms, include brief explanations in parentheses.
+- Since the input may contain entire website information, distinguish between the actual
+  news text and distracting ads or irrelevant information, and focus solely on the relevant news content.
+
+Post Writing Guidelines:
+- Proofread the article for any errors or inconsistencies.
+- Ensure the post is engaging, informative, and easy to understand.
+
+Return a JSON response with exactly this structure:
+{
+  "headline": string,
+  "body": string,
+  "source": string
+}
+"""
+
+def format_for_figma(headline, body, instagram_caption="", is_breaking=False, use_cta=False, cta_type="", content_type="post", source=""):
     """Format the content in a structured format for the Figma plugin to parse"""
     # Create a special format that can be easily parsed
     formatted_content = f"DUB_NEWS_DATA_START\n"
+    formatted_content += f"CONTENT_TYPE: {content_type}\n"
     formatted_content += f"TEMPLATE_TYPE: {'breaking' if is_breaking else 'non-breaking'}\n"
     formatted_content += f"HEADLINE: {headline}\n"
     formatted_content += f"BODY: {body}\n"
-    formatted_content += f"INSTAGRAM: {instagram_caption}\n"
+    
+    # Only include Instagram caption for post type
+    if content_type == "post":
+        formatted_content += f"INSTAGRAM: {instagram_caption}\n"
+    
+    formatted_content += f"SOURCE: {source}\n"
     formatted_content += f"USE_CTA: {'true' if use_cta else 'false'}\n"
     if use_cta:
         formatted_content += f"CTA_TYPE: {cta_type}\n"
@@ -50,7 +90,7 @@ def format_for_figma(headline, body, instagram_caption, is_breaking, use_cta=Fal
     
     return formatted_content
 
-def process_article(api_key, article_text, is_breaking, use_cta=False, cta_type="", custom_instructions=""):
+def process_article(api_key, article_text, content_type, is_breaking, use_cta=False, cta_type="", custom_instructions=""):
     """Process a news article and generate content using OpenAI's API"""
     if not api_key:
         return "Please provide an OpenAI API key", "", "", ""
@@ -61,8 +101,13 @@ def process_article(api_key, article_text, is_breaking, use_cta=False, cta_type=
     try:
         openai.api_key = api_key
         
-        # Create system prompt with custom instructions if provided
-        system_prompt = DEFAULT_PROMPT
+        # Select the right prompt based on content type
+        if content_type == "story":
+            system_prompt = STORY_PROMPT
+        else:  # Default to post
+            system_prompt = DEFAULT_PROMPT
+        
+        # Add custom instructions if provided
         if custom_instructions:
             system_prompt += f"\n\nAdditional specific instructions for this article:\n{custom_instructions}"
         
@@ -83,23 +128,40 @@ def process_article(api_key, article_text, is_breaking, use_cta=False, cta_type=
         # Process the response
         content = json.loads(response.choices[0].message.content)
         
-        # Override isBreaking based on user selection
-        content["isBreaking"] = is_breaking
+        # Handle different response formats based on content type
+        if content_type == "story":
+            headline = content.get("headline", "")
+            body = content.get("body", "")
+            source = content.get("source", "")
+            instagram_caption = ""
+            
+            # For story type, we add isBreaking to the content
+            if is_breaking is not None:
+                content["isBreaking"] = is_breaking
+        else:
+            # For post type, we override isBreaking based on user selection
+            content["isBreaking"] = is_breaking
+            headline = content.get("headline", "")
+            body = content.get("body", "")
+            source = content.get("source", "")
+            instagram_caption = content.get("instagramCaption", "")
         
         # Create figma-ready format
         figma_format = format_for_figma(
-            content["headline"],
-            content["body"],
-            content["instagramCaption"],
+            headline,
+            body,
+            instagram_caption,
             is_breaking,
             use_cta,
-            cta_type
+            cta_type,
+            content_type,
+            source
         )
         
         return (
-            content["headline"], 
-            content["body"], 
-            content["instagramCaption"],
+            headline, 
+            body, 
+            instagram_caption if content_type == "post" else "",
             figma_format
         )
         
@@ -170,6 +232,13 @@ with gr.Blocks(title="Dub News Generator") as demo:
             
             api_key_status = gr.Markdown("")
             
+            content_type = gr.Radio(
+                choices=["post", "story"],
+                label="Content Type",
+                value="post",
+                info="Select 'post' for Instagram feed content, 'story' for Instagram story content"
+            )
+            
             article_input = gr.Textbox(
                 label="News Article", 
                 placeholder="Paste the news article text here...",
@@ -217,7 +286,7 @@ with gr.Blocks(title="Dub News Generator") as demo:
     # Connect events
     generate_btn.click(
         process_article, 
-        inputs=[api_key_input, article_input, is_breaking, use_cta, cta_type, custom_instructions],
+        inputs=[api_key_input, article_input, content_type, is_breaking, use_cta, cta_type, custom_instructions],
         outputs=[headline_output, body_output, instagram_output, figma_output]
     )
     
@@ -244,6 +313,16 @@ with gr.Blocks(title="Dub News Generator") as demo:
         lambda x: gr.update(visible=x),
         inputs=[use_cta],
         outputs=[cta_options]
+    )
+    
+    # Update Instagram caption visibility based on content type
+    def update_instagram_visibility(content_type):
+        return gr.update(visible=content_type == "post")
+    
+    content_type.change(
+        update_instagram_visibility,
+        inputs=[content_type],
+        outputs=[instagram_output]
     )
 
 # Launch the app

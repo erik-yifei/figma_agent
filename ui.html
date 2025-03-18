@@ -8,7 +8,7 @@
   
   .container {
     width: 100%;
-    max-width: 380px;
+    max-width: 450px;
     margin: 0 auto;
     background-color: white;
     border-radius: 8px;
@@ -291,6 +291,21 @@
   .tab-content.active {
     display: block;
   }
+  
+  /* Resizing handle */
+  .resize-handle {
+    position: absolute;
+    bottom: 10px;
+    right: 20px;
+    cursor: nwse-resize;
+    font-size: 20px;
+    color: #ccc;
+    transition: color 0.2s;
+  }
+  
+  .resize-handle:hover {
+    color: #888;
+  }
 </style>
 
 <div class="container">
@@ -302,6 +317,21 @@
   </div>
   
   <div id="manual-tab" class="tab-content active">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📄</span>
+        <label>Select Content Type:</label>
+      </div>
+      <div class="radio-group">
+        <label class="radio-option selected" id="post-option">
+          <input type="radio" name="content-type" value="post" checked> 📱 Instagram Post
+        </label>
+        <label class="radio-option" id="story-option">
+          <input type="radio" name="content-type" value="story"> 📖 Instagram Story
+        </label>
+      </div>
+    </div>
+    
     <div class="section">
       <div class="section-header">
         <span class="section-icon">📄</span>
@@ -342,6 +372,8 @@
       </div>
       <textarea id="caption" placeholder="Enter caption for social media..."></textarea>
       <div class="help-text">Used for social media sharing of the content</div>
+      <!-- Hidden field to store source information -->
+      <input type="hidden" id="source-hidden" value="">
     </div>
     
     <div class="section">
@@ -491,9 +523,10 @@
   
   // Update button text based on selections
   function updateButtonText() {
+    const contentType = document.querySelector('input[name="content-type"]:checked').value;
     const templateType = document.querySelector('input[name="template-type"]:checked').value;
     const useCta = document.getElementById('use-cta').checked;
-    let buttonText = `✨ Create ${templateType === 'breaking' ? '🔴 Breaking' : '📣 Non-Breaking'} News Post`;
+    let buttonText = `✨ Create ${contentType === 'story' ? '📖 Story' : '📱 Post'} - ${templateType === 'breaking' ? '🔴 Breaking' : '📣 Non-Breaking'}`;
     
     if (useCta) {
       const ctaType = document.querySelector('input[name="cta-type"]:checked').value;
@@ -511,7 +544,7 @@
   }
   
   // Add event listeners for all form controls to update button text
-  document.querySelectorAll('input[name="template-type"], input[name="cta-type"], #use-cta')
+  document.querySelectorAll('input[name="template-type"], input[name="content-type"], input[name="cta-type"], #use-cta')
     .forEach(input => input.addEventListener('change', updateButtonText));
   
   // Call once to set initial text
@@ -526,10 +559,13 @@
     const headline = document.getElementById('headline').value;
     const body = document.getElementById('body').value;
     const caption = document.getElementById('caption').value;
+    const contentType = document.querySelector('input[name="content-type"]:checked').value;
     const templateType = document.querySelector('input[name="template-type"]:checked').value;
     const useCta = document.getElementById('use-cta').checked;
     const ctaType = useCta ? document.querySelector('input[name="cta-type"]:checked').value : '';
     const forceCreate = document.getElementById('force-create').checked;
+    // Get source from hidden field if it exists, otherwise empty string
+    const source = document.getElementById('source-hidden') ? document.getElementById('source-hidden').value : '';
     
     if (!headline) {
       const errorEl = document.getElementById('error');
@@ -547,11 +583,13 @@
         headline,
         body,
         caption,
+        contentType,
         templateType,
         useCta,
         ctaType,
         instagram: "",
-        force: forceCreate
+        force: forceCreate,
+        source: source
       }
     }, '*');
   };
@@ -567,9 +605,11 @@
         const headline = document.getElementById('headline').value;
         const body = document.getElementById('body').value;
         const caption = document.getElementById('caption').value;
+        const contentType = document.querySelector('input[name="content-type"]:checked').value;
         const templateType = document.querySelector('input[name="template-type"]:checked').value;
         const useCta = document.getElementById('use-cta').checked;
         const ctaType = useCta ? document.querySelector('input[name="cta-type"]:checked').value : '';
+        const source = document.getElementById('source-hidden') ? document.getElementById('source-hidden').value : '';
         
         // Add a flag to force creation even if duplicate
         parent.postMessage({
@@ -578,11 +618,13 @@
             headline,
             body,
             caption,
+            contentType,
             templateType,
             useCta,
             ctaType,
             instagram: "",
-            force: true
+            force: true,
+            source: source
           }
         }, '*');
       }
@@ -621,22 +663,66 @@
       }
       
       const dataSection = pastedData.substring(startIndex, endIndex).trim();
-      const lines = dataSection.split('\n');
       
       // Create an object to hold the parsed data
       const parsedData = {};
       
-      // Parse each line
-      lines.forEach(line => {
-        const colonIndex = line.indexOf(':');
-        if (colonIndex > -1) {
-          const key = line.substring(0, colonIndex).trim();
-          const value = line.substring(colonIndex + 1).trim();
-          parsedData[key] = value;
+      // Define the fields we're looking for
+      const fields = [
+        { key: 'CONTENT_TYPE', nextKey: 'TEMPLATE_TYPE' },
+        { key: 'TEMPLATE_TYPE', nextKey: 'HEADLINE' },
+        { key: 'HEADLINE', nextKey: 'BODY' },
+        { key: 'BODY', nextKey: 'INSTAGRAM' },
+        { key: 'INSTAGRAM', nextKey: 'SOURCE' },
+        { key: 'SOURCE', nextKey: 'USE_CTA' },
+        { key: 'USE_CTA', nextKey: 'CTA_TYPE' },
+        { key: 'CTA_TYPE', nextKey: null }
+      ];
+      
+      // Process each field
+      fields.forEach((field, i) => {
+        const keyPattern = new RegExp(`${field.key}:\\s*`);
+        const keyMatch = dataSection.match(keyPattern);
+        
+        if (keyMatch) {
+          const keyStart = keyMatch.index + keyMatch[0].length;
+          
+          // Find the next key, or use the end of the data section if this is the last field
+          let valueEnd;
+          if (field.nextKey) {
+            const nextKeyPattern = new RegExp(`${field.nextKey}:\\s*`);
+            const nextKeyMatch = dataSection.match(nextKeyPattern);
+            valueEnd = nextKeyMatch ? nextKeyMatch.index : dataSection.length;
+          } else {
+            valueEnd = dataSection.length;
+          }
+          
+          // Extract the value
+          const value = dataSection.substring(keyStart, valueEnd).trim();
+          parsedData[field.key] = value;
         }
       });
       
       // Fill the form with the parsed data
+      
+      // Content type
+      const contentType = parsedData['CONTENT_TYPE'] || 'post';
+      document.querySelectorAll('input[name="content-type"]').forEach(input => {
+        input.checked = input.value === contentType;
+        if (input.checked) {
+          input.closest('.radio-option').classList.add('selected');
+        } else {
+          input.closest('.radio-option').classList.remove('selected');
+        }
+      });
+      
+      // Show/hide Instagram caption field based on content type
+      const captionField = document.getElementById('caption').closest('.section');
+      if (contentType === 'story') {
+        captionField.style.display = 'none';
+      } else {
+        captionField.style.display = 'block';
+      }
       
       // Template type
       const templateType = parsedData['TEMPLATE_TYPE'] || 'non-breaking';
@@ -657,6 +743,12 @@
       
       // Caption (Instagram)
       document.getElementById('caption').value = parsedData['INSTAGRAM'] || '';
+      
+      // Source (store in hidden field)
+      if (parsedData['SOURCE']) {
+        document.getElementById('source-hidden').value = parsedData['SOURCE'];
+        console.log("Source identified:", parsedData['SOURCE']);
+      }
       
       // CTA
       const useCta = (parsedData['USE_CTA'] || '').toLowerCase() === 'true';
@@ -732,4 +824,67 @@
       document.getElementById(tabId).classList.add('active');
     });
   });
+
+  // Update content type based on the chosen option
+  document.querySelectorAll('input[name="content-type"]').forEach(input => {
+    input.addEventListener('change', function() {
+      const contentType = this.value;
+      
+      // Show/hide Instagram caption field based on content type
+      const captionField = document.getElementById('caption').closest('.section');
+      
+      // Also handle CTA section visibility - hide for stories
+      const ctaSection = document.getElementById('cta-checkbox').closest('.section');
+      
+      if (contentType === 'story') {
+        captionField.style.display = 'none';
+        ctaSection.style.display = 'none';
+        // Ensure CTA is unchecked for stories
+        document.getElementById('use-cta').checked = false;
+        document.getElementById('cta-options').classList.add('disabled-section');
+      } else {
+        captionField.style.display = 'block';
+        ctaSection.style.display = 'block';
+      }
+      
+      updateButtonText();
+    });
+  });
+  
+  // Add resize functionality
+  const resizeHandle = document.createElement('div');
+  resizeHandle.className = 'resize-handle';
+  resizeHandle.innerHTML = '⟱';
+  resizeHandle.title = 'Drag to resize';
+  document.body.appendChild(resizeHandle);
+  
+  let startHeight, startY;
+  
+  resizeHandle.addEventListener('mousedown', (e) => {
+    startY = e.clientY;
+    startHeight = window.innerHeight;
+    
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+    
+    e.preventDefault();
+  });
+  
+  function resize(e) {
+    const deltaY = e.clientY - startY;
+    const newHeight = startHeight + deltaY;
+    
+    // Send message to resize
+    parent.postMessage({
+      pluginMessage: {
+        type: 'resize',
+        height: Math.max(400, newHeight)
+      }
+    }, '*');
+  }
+  
+  function stopResize() {
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+  }
 </script> 

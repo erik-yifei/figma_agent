@@ -1,15 +1,21 @@
 // Show the plugin UI
-figma.showUI(__html__, { width: 400, height: 650 });
+figma.showUI(__html__, { width: 480, height: 650 });
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
+  if (msg.type === 'resize') {
+    // Handle resize request
+    figma.ui.resize(480, msg.height);
+    return;
+  }
+  
   if (msg.type === 'create-post') {
     try {
       // Load the required font
       await figma.loadFontAsync({ family: "ITC Cheltenham Std", style: "Book" });
       
       // Extract the data from the message
-      const { headline, body, caption, templateType, useCta, ctaType, instagram, force } = msg;
+      const { headline, body, caption, contentType, templateType, useCta, ctaType, instagram, force, source } = msg;
       
       // Check if we have duplicate posts with this headline (if not forced)
       if (!force) {
@@ -26,64 +32,72 @@ figma.ui.onmessage = async (msg) => {
       // This will hold references to all created elements
       const createdElements = [];
       
-      // Create the post based on template type
-      let headlinePost;
-      if (templateType === 'breaking') {
-        headlinePost = await createBreakingNewsPost(headline);
-        createdElements.push(headlinePost);
-        figma.notify("✅ Created breaking news post with your headline!");
+      // Check if this is a story or a post
+      if (contentType === 'story') {
+        // Create story with two templates - headline and body, passing the source
+        const storyElements = await createStory(headline, body, templateType, source);
+        createdElements.push(...storyElements);
+        figma.notify(`✅ Created Instagram story with your content!`);
       } else {
-        headlinePost = await createNonBreakingNewsPost(headline);
-        createdElements.push(headlinePost);
-      }
-      
-      // Add body if provided
-      let bodyPost = null;
-      if (body && body.trim() !== "") {
-        try {
-          bodyPost = await createBodyPost(body, headlinePost);
-          createdElements.push(bodyPost);
-        } catch (error) {
-          console.error("Error creating body post:", error);
-          figma.notify("Created headline, but there was an error with the body: " + error.message);
+        // Create the post based on template type (original functionality)
+        let headlinePost;
+        if (templateType === 'breaking') {
+          headlinePost = await createBreakingNewsPost(headline);
+          createdElements.push(headlinePost);
+          figma.notify("✅ Created breaking news post with your headline!");
+        } else {
+          headlinePost = await createNonBreakingNewsPost(headline);
+          createdElements.push(headlinePost);
         }
-      }
-      
-      // Handle CTA and disclaimer if requested
-      if (useCta) {
-        try {
-          const ctaPost = await createCtaPost(ctaType, bodyPost || headlinePost);
-          createdElements.push(ctaPost);
-          
-          // Determine which disclaimer to use
-          const usePerformanceData = (ctaType === 'politician' || ctaType === 'crypto' || ctaType === 'hedge-fund');
-          
-          // Add the appropriate disclaimer
-          const disclaimerPost = await addDisclaimer(ctaPost, usePerformanceData);
-          createdElements.push(disclaimerPost);
-        } catch (error) {
-          console.error("Error with CTA or disclaimer:", error);
-          figma.notify(`Error with CTA: ${error.message}`, { error: true });
+        
+        // Add body if provided
+        let bodyPost = null;
+        if (body && body.trim() !== "") {
+          try {
+            bodyPost = await createBodyPost(body, headlinePost);
+            createdElements.push(bodyPost);
+          } catch (error) {
+            console.error("Error creating body post:", error);
+            figma.notify("Created headline, but there was an error with the body: " + error.message);
+          }
         }
-      } else if (body && body.trim() !== "") {
-        // Add only the disclaimer without performance data if there's a body but no CTA
-        try {
-          const disclaimerPost = await addDisclaimer(bodyPost, false);
-          createdElements.push(disclaimerPost);
-        } catch (error) {
-          console.error("Error with disclaimer:", error);
-          figma.notify(`Error with disclaimer: ${error.message}`, { error: true });
+        
+        // Handle CTA and disclaimer if requested
+        if (useCta) {
+          try {
+            const ctaPost = await createCtaPost(ctaType, bodyPost || headlinePost);
+            createdElements.push(ctaPost);
+            
+            // Determine which disclaimer to use
+            const usePerformanceData = (ctaType === 'politician' || ctaType === 'crypto' || ctaType === 'hedge-fund');
+            
+            // Add the appropriate disclaimer with source
+            const disclaimerPost = await addDisclaimer(ctaPost, usePerformanceData, source);
+            createdElements.push(disclaimerPost);
+          } catch (error) {
+            console.error("Error with CTA or disclaimer:", error);
+            figma.notify(`Error with CTA: ${error.message}`, { error: true });
+          }
+        } else if (body && body.trim() !== "") {
+          // Add only the disclaimer without performance data if there's a body but no CTA
+          try {
+            const disclaimerPost = await addDisclaimer(bodyPost, false, source);
+            createdElements.push(disclaimerPost);
+          } catch (error) {
+            console.error("Error with disclaimer:", error);
+            figma.notify(`Error with disclaimer: ${error.message}`, { error: true });
+          }
         }
-      }
-      
-      // Add caption LAST if provided (moved after disclaimer)
-      if (caption && caption.trim() !== "") {
-        try {
-          const captionElement = await createCaption(caption);
-          createdElements.push(captionElement);
-        } catch (error) {
-          console.error("Error creating caption:", error);
-          figma.notify("Created post, but there was an error with the caption: " + error.message);
+        
+        // Add caption LAST if provided (moved after disclaimer)
+        if (caption && caption.trim() !== "") {
+          try {
+            const captionElement = await createCaption(caption);
+            createdElements.push(captionElement);
+          } catch (error) {
+            console.error("Error creating caption:", error);
+            figma.notify("Created post, but there was an error with the caption: " + error.message);
+          }
         }
       }
       
@@ -660,7 +674,7 @@ function findCtaTemplate(ctaType) {
 }
 
 // Function to add the appropriate disclaimer
-async function addDisclaimer(relatedPost, withPerformanceData) {
+async function addDisclaimer(relatedPost, withPerformanceData, source = "") {
   try {
     // Find the appropriate disclaimer template
     const disclaimerTemplate = findDisclaimerTemplate(withPerformanceData);
@@ -676,12 +690,45 @@ async function addDisclaimer(relatedPost, withPerformanceData) {
     // Position with our new function
     positionNewElement(newDisclaimerPost, relatedPost, disclaimerTemplate);
     
+    // Find and replace <SOURCE> in the disclaimer text if source is provided
+    if (source && source.trim() !== "") {
+      try {
+        await updateDisclaimerSource(newDisclaimerPost, source, withPerformanceData);
+      } catch (error) {
+        console.error("Error updating source in disclaimer:", error);
+      }
+    }
+    
     return newDisclaimerPost;
   } catch (error) {
     console.error("Error adding disclaimer:", error);
     figma.notify(`Error with disclaimer: ${error.message}`, { error: true });
     throw error;
   }
+}
+
+// Function to update the source in the disclaimer
+async function updateDisclaimerSource(disclaimerPost, source, withPerformanceData) {
+  // Find the right text node based on the template type
+  const textNodeName = withPerformanceData ? "Disclaimer_Performance_Body" : "Disclaimer_Body";
+  
+  const textNode = disclaimerPost.findOne(node => 
+    node.type === 'TEXT' && 
+    (node.name === textNodeName || node.characters.includes('<SOURCE>'))
+  );
+  
+  if (!textNode) {
+    console.warn(`Could not find text node with name ${textNodeName} or containing '<SOURCE>'`);
+    return;
+  }
+  
+  // Load the font to make text editable
+  await figma.loadFontAsync(textNode.fontName);
+  
+  // Replace <SOURCE> with the actual source
+  textNode.characters = textNode.characters.replace('<SOURCE>', source);
+  
+  console.log(`Updated source in disclaimer to: ${source}`);
 }
 
 // Function to find the appropriate disclaimer template
@@ -808,4 +855,213 @@ function findCaptionTextNode(captionElement) {
   
   // Otherwise look for a text node inside it
   return captionElement.findOne(node => node.type === 'TEXT');
+}
+
+// Function to create an Instagram story using two templates
+async function createStory(headline, body, templateType, source = "") {
+  const createdElements = [];
+  
+  try {
+    // Find the story templates
+    const headlineTemplate = findStoryHeadlineTemplate();
+    const bodyTemplate = findStoryBodyTemplate();
+    
+    if (!headlineTemplate) {
+      throw new Error("Story headline template not found. Please make sure you have a template named 'Breaking news story with body template 1' in the 'Disclosed Advisors Templates' section.");
+    }
+    
+    if (!bodyTemplate) {
+      throw new Error("Story body template not found. Please make sure you have a template named 'Breaking news story with body template 2' in the 'Disclosed Advisors Templates' section.");
+    }
+    
+    // Create a duplicate of the headline template
+    const headlineFrame = headlineTemplate.clone();
+    figma.notify("Created headline frame for story");
+    
+    // Create a duplicate of the body template
+    const bodyFrame = bodyTemplate.clone();
+    figma.notify("Created body frame for story");
+    
+    // Position the headline frame
+    headlineFrame.x = headlineTemplate.x + headlineTemplate.width + 144;
+    headlineFrame.y = headlineTemplate.y;
+    figma.currentPage.appendChild(headlineFrame);
+    
+    // Position the body frame
+    bodyFrame.x = headlineFrame.x + headlineFrame.width + 144;
+    bodyFrame.y = headlineFrame.y;
+    figma.currentPage.appendChild(bodyFrame);
+    
+    // Update the headline text
+    await updateStoryHeadline(headlineFrame, headline);
+    
+    // Update the body text and disclaimer
+    await updateStoryBody(bodyFrame, body, source);
+    
+    // Add the frames to the elements array
+    createdElements.push(headlineFrame, bodyFrame);
+    
+  } catch (error) {
+    console.error("Error creating story:", error);
+    figma.notify(`Error creating story: ${error.message}`, { error: true });
+  }
+  
+  return createdElements;
+}
+
+// Function to find the story headline template
+function findStoryHeadlineTemplate() {
+  // First try to find the template by name directly
+  const templateByName = figma.currentPage.findOne(node => 
+    (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+    node.name === "Breaking news story with body template 1"
+  );
+  
+  if (templateByName) {
+    return templateByName;
+  }
+  
+  // If not found directly, look in the Disclosed Advisors Templates section
+  const templatesSection = figma.currentPage.findOne(node => 
+    node.type === 'FRAME' && 
+    node.name === "Disclosed Advisors Templates"
+  );
+  
+  if (!templatesSection) {
+    return null;
+  }
+  
+  // Look for the template inside the templates section
+  return templatesSection.findOne(node => 
+    (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+    node.name === "Breaking news story with body template 1"
+  );
+}
+
+// Function to find the story body template
+function findStoryBodyTemplate() {
+  // First try to find the template by name directly
+  const templateByName = figma.currentPage.findOne(node => 
+    (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+    node.name === "Breaking news story with body template 2"
+  );
+  
+  if (templateByName) {
+    return templateByName;
+  }
+  
+  // If not found directly, look in the Disclosed Advisors Templates section
+  const templatesSection = figma.currentPage.findOne(node => 
+    node.type === 'FRAME' && 
+    node.name === "Disclosed Advisors Templates"
+  );
+  
+  if (!templatesSection) {
+    return null;
+  }
+  
+  // Look for the template inside the templates section
+  return templatesSection.findOne(node => 
+    (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+    node.name === "Breaking news story with body template 2"
+  );
+}
+
+// Function to update the headline in the story headline template
+async function updateStoryHeadline(headlineFrame, headline) {
+  try {
+    // Find the headline text node
+    const headlineTextNode = headlineFrame.findOne(node => 
+      node.type === 'TEXT' && 
+      (node.name === "Headline" || node.characters.includes('TEST TEXT HERE') || node.characters.includes('Headline'))
+    );
+    
+    if (!headlineTextNode) {
+      throw new Error("Headline text node not found in the story template");
+    }
+    
+    // Load the required font
+    const targetFont = { family: "ITC Cheltenham Std", style: "Book" };
+    await figma.loadFontAsync(targetFont);
+    
+    // Update the text and formatting
+    headlineTextNode.fontName = targetFont;
+    headlineTextNode.fontSize = 120;
+    headlineTextNode.characters = headline;
+    
+    return true;
+  } catch (error) {
+    console.error("Error updating story headline:", error);
+    throw error;
+  }
+}
+
+// Function to update the body in the story body template
+async function updateStoryBody(bodyFrame, body, source = "") {
+  try {
+    // Find the body text node
+    const bodyTextNode = bodyFrame.findOne(node => 
+      node.type === 'TEXT' && 
+      (node.name === "Body" || node.characters.includes('TEST TEXT HERE') || node.characters.includes('Body'))
+    );
+    
+    if (!bodyTextNode) {
+      throw new Error("Body text node not found in the story template");
+    }
+    
+    // Load the required font
+    const targetFont = { family: "SF Pro Display", style: "Semibold" };
+    await figma.loadFontAsync(targetFont);
+    
+    // Update the text and formatting
+    bodyTextNode.fontName = targetFont;
+    bodyTextNode.fontSize = 56;
+    
+    // Ensure newlines are preserved in the body text
+    // Make sure to replace any sequence of two newlines with the appropriate Figma newline format
+    let formattedBody = body;
+    
+    // Update the text content
+    bodyTextNode.characters = formattedBody;
+    
+    // Set line height for better readability
+    bodyTextNode.lineHeight = { value: 102, unit: 'PERCENT' };
+    
+    // Set text-specific properties
+    if (bodyTextNode.textAutoResize) {
+      bodyTextNode.textAutoResize = 'HEIGHT';
+    }
+    
+    console.log("Successfully updated story body with text:", formattedBody);
+    
+    // If source is provided, update the disclaimer text
+    if (source && source.trim() !== "") {
+      // Find the disclaimer text node
+      const disclaimerTextNode = bodyFrame.findOne(node => 
+        node.type === 'TEXT' && 
+        (node.name === "Disclaimer" || node.characters.includes('<SOURCE>'))
+      );
+      
+      if (disclaimerTextNode) {
+        try {
+          // Load the font for the disclaimer
+          await figma.loadFontAsync(disclaimerTextNode.fontName);
+          
+          // Replace <SOURCE> with the actual source
+          disclaimerTextNode.characters = disclaimerTextNode.characters.replace('<SOURCE>', source);
+          
+          console.log(`Updated source in story disclaimer to: ${source}`);
+        } catch (error) {
+          console.error("Error updating source in story disclaimer:", error);
+        }
+      } else {
+        console.warn("Disclaimer text node not found in story body template");
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error updating story body:", error);
+    throw error;
+  }
 }
