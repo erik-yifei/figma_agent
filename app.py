@@ -13,9 +13,9 @@ api_key = os.getenv("OPENAI_API_KEY", "")
 
 # The default system prompt
 DEFAULT_PROMPT = """
-Breaking Headline: Create a clear and engaging headline.
+Breaking Headline: Create a clear, engaging, informational headline.
 70-Word Narrative: Summarize the news article in a single, cohesive 70-word paragraph.
-30-Word Instagram Caption: Write a 30-word caption for an Instagram post.
+40-Word Instagram Caption: Write a 40-word caption for an Instagram post.
 
 Guidelines:
 - Include all important numbers and stats from the article using only the provided data.
@@ -35,7 +35,7 @@ Return a JSON response with exactly this structure:
 }
 """
 
-def format_for_figma(headline, body, instagram_caption, is_breaking):
+def format_for_figma(headline, body, instagram_caption, is_breaking, use_cta=False, cta_type=""):
     """Format the content in a structured format for the Figma plugin to parse"""
     # Create a special format that can be easily parsed
     formatted_content = f"DUB_NEWS_DATA_START\n"
@@ -43,11 +43,14 @@ def format_for_figma(headline, body, instagram_caption, is_breaking):
     formatted_content += f"HEADLINE: {headline}\n"
     formatted_content += f"BODY: {body}\n"
     formatted_content += f"INSTAGRAM: {instagram_caption}\n"
+    formatted_content += f"USE_CTA: {'true' if use_cta else 'false'}\n"
+    if use_cta:
+        formatted_content += f"CTA_TYPE: {cta_type}\n"
     formatted_content += f"DUB_NEWS_DATA_END"
     
     return formatted_content
 
-def process_article(api_key, article_text, is_breaking, custom_instructions=""):
+def process_article(api_key, article_text, is_breaking, use_cta=False, cta_type="", custom_instructions=""):
     """Process a news article and generate content using OpenAI's API"""
     if not api_key:
         return "Please provide an OpenAI API key", "", "", ""
@@ -69,7 +72,7 @@ def process_article(api_key, article_text, is_breaking, custom_instructions=""):
         
         # Make API call
         response = openai.chat.completions.create(
-            model="gpt-4o",
+            model="o3-mini-2025-01-31",
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -88,7 +91,9 @@ def process_article(api_key, article_text, is_breaking, custom_instructions=""):
             content["headline"],
             content["body"],
             content["instagramCaption"],
-            is_breaking
+            is_breaking,
+            use_cta,
+            cta_type
         )
         
         return (
@@ -101,10 +106,54 @@ def process_article(api_key, article_text, is_breaking, custom_instructions=""):
     except Exception as e:
         return f"Error: {str(e)}", "", "", ""
 
+# Define the function BEFORE using it in the click handler
+def copy_to_clipboard(figma_format):
+    if not figma_format:
+        return "⚠️ No content to copy"
+    
+    try:
+        pyperclip.copy(figma_format)
+        return "✅ Copied to clipboard - Now paste in the Figma plugin's 'Paste from App' tab"
+    except Exception as e:
+        return f"❌ Error copying to clipboard: {str(e)}"
+
+def format_body_with_paragraphs(body_text):
+    """Format body text to ensure it has 3 paragraphs"""
+    # If body already has paragraphs, return as is
+    if body_text.count('\n\n') >= 2:
+        return body_text
+        
+    # Otherwise, split into sentences
+    import re
+    sentences = re.split(r'(?<=[.!?])\s+', body_text)
+    
+    # If fewer than 3 sentences, just return original
+    if len(sentences) < 3:
+        return body_text
+        
+    # Calculate roughly how many sentences per paragraph
+    sentences_per_para = max(1, len(sentences) // 3)
+    
+    paragraphs = []
+    for i in range(0, len(sentences), sentences_per_para):
+        para = ' '.join(sentences[i:i+sentences_per_para])
+        paragraphs.append(para)
+    
+    # Combine the first sentences if we have more than 3 paragraphs
+    while len(paragraphs) > 3:
+        paragraphs[0] = paragraphs[0] + ' ' + paragraphs[1]
+        paragraphs.pop(1)
+    
+    # Make sure we have 3 paragraphs
+    while len(paragraphs) < 3:
+        paragraphs.append("")
+    
+    return '\n\n'.join(paragraphs)
+
 # Create the Gradio interface
 with gr.Blocks(title="Dub News Generator") as demo:
     gr.Markdown("# Dub News Generator")
-    gr.Markdown("Generate news content for your Figma plugin using GPT-4o")
+    gr.Markdown("Generate news content for your Figma plugin using o3-mini-2025-01-31")
     
     with gr.Row():
         with gr.Column():
@@ -128,6 +177,16 @@ with gr.Blocks(title="Dub News Generator") as demo:
             )
             
             is_breaking = gr.Checkbox(label="Is this Breaking News?")
+            
+            with gr.Row():
+                use_cta = gr.Checkbox(label="Include a CTA")
+            
+            with gr.Accordion("CTA Options", open=False, visible=False) as cta_options:
+                cta_type = gr.Radio(
+                    choices=["Politician", "Crypto", "Hedge-Fund", "Search"],
+                    label="CTA Type",
+                    value="Search"
+                )
             
             with gr.Accordion("Custom Instructions (Optional)", open=False):
                 custom_instructions = gr.Textbox(
@@ -158,7 +217,7 @@ with gr.Blocks(title="Dub News Generator") as demo:
     # Connect events
     generate_btn.click(
         process_article, 
-        inputs=[api_key_input, article_input, is_breaking, custom_instructions],
+        inputs=[api_key_input, article_input, is_breaking, use_cta, cta_type, custom_instructions],
         outputs=[headline_output, body_output, instagram_output, figma_output]
     )
     
@@ -173,23 +232,20 @@ with gr.Blocks(title="Dub News Generator") as demo:
         outputs=[api_key_input, api_key_status]
     )
     
-    # Copy button functionality (uses JavaScript)
+    # Then use it in the click handler
     figma_copy_btn.click(
         copy_to_clipboard,
         inputs=[figma_output],
         outputs=[figma_copy_status]
     )
 
+    # Make CTA options visible only when use_cta is checked
+    use_cta.change(
+        lambda x: gr.update(visible=x),
+        inputs=[use_cta],
+        outputs=[cta_options]
+    )
+
 # Launch the app
 if __name__ == "__main__":
-    demo.launch()
-
-def copy_to_clipboard(figma_format):
-    if not figma_format:
-        return "⚠️ No content to copy"
-    
-    try:
-        pyperclip.copy(figma_format)
-        return "✅ Copied to clipboard - Now paste in the Figma plugin's 'Paste from App' tab"
-    except Exception as e:
-        return f"❌ Error copying to clipboard: {str(e)}" 
+    demo.launch(share=True, inbrowser=True) 

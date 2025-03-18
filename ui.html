@@ -3,16 +3,31 @@
     font-family: 'Inter', sans-serif;
     padding: 20px;
     color: #333;
+    background-color: #f9f9f9;
   }
   
   .container {
-    width: 300px;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   h2 {
     margin-top: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  h2 .emoji {
+    margin-right: 8px;
+    font-size: 20px;
   }
   
   label {
@@ -20,16 +35,17 @@
     margin-top: 16px;
     margin-bottom: 8px;
     font-weight: 500;
-    font-size: 12px;
+    font-size: 13px;
   }
   
   input, textarea, select {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #E5E5E5;
-    border-radius: 4px;
-    font-size: 12px;
+    border-radius: 6px;
+    font-size: 13px;
     box-sizing: border-box;
+    background-color: #fcfcfc;
   }
   
   textarea {
@@ -42,21 +58,38 @@
     background-color: #18A0FB;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 12px 16px;
     border-radius: 6px;
     font-weight: 500;
     cursor: pointer;
     width: 100%;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   button:hover {
     background-color: #0D8EE4;
   }
   
+  .button-icon {
+    margin-right: 8px;
+  }
+  
   .error {
     color: #F24822;
     margin-top: 8px;
     font-size: 12px;
+    padding: 8px;
+    background-color: #FFF1F0;
+    border-radius: 4px;
+    display: none;
+  }
+  
+  .error.visible {
+    display: block;
   }
   
   .template-selection {
@@ -73,6 +106,18 @@
     display: flex;
     align-items: center;
     cursor: pointer;
+    background-color: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+  }
+  
+  .radio-option:hover {
+    background-color: #efefef;
+  }
+  
+  .radio-option.selected {
+    background-color: #e3f2fd;
   }
   
   .radio-option input {
@@ -80,21 +125,163 @@
     width: auto;
   }
   
+  .section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .section-icon {
+    margin-right: 8px;
+    font-size: 16px;
+  }
+  
+  .help-text {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+  }
+  
+  .checkbox-option {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    background-color: #f8f8f8;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .checkbox-option:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .checkbox-option.checked {
+    background-color: #e3f2fd;
+  }
+  
+  .checkbox-option input {
+    margin-right: 8px;
+    width: auto;
+  }
+  
+  .cta-options {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f8f8f8;
+    border-radius: 8px;
+  }
+  
+  .disabled-section {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  
+  .cta-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    background-color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .cta-option:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .cta-option.selected {
+    background-color: #e3f2fd;
+  }
+  
+  .cta-option input {
+    margin-right: 8px;
+    width: auto;
+  }
+  
+  .cta-option label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .cta-icon {
+    margin-right: 8px;
+    font-size: 16px;
+  }
+  
+  .section-title {
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+    font-size: 11px;
+    color: #999;
+  }
+  
+  .secondary-button {
+    background-color: #f0f0f0;
+    color: #333;
+    margin-top: 10px;
+  }
+  
+  .secondary-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .success-message {
+    background-color: #e6f7e6;
+    color: #2e7d32;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  
+  /* Tab-like navigation for input methods */
   .tabs {
     display: flex;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #E5E5E5;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0;
   }
   
   .tab {
-    padding: 8px 16px;
+    padding: 10px 15px;
     cursor: pointer;
-    font-size: 14px;
+    margin-right: 5px;
+    border-radius: 6px 6px 0 0;
+    background-color: #f5f5f5;
   }
   
   .tab.active {
-    border-bottom: 2px solid #18A0FB;
-    color: #18A0FB;
+    background-color: #e3f2fd;
+    border-bottom: 2px solid #1a73e8;
   }
   
   .tab-content {
@@ -107,143 +294,442 @@
 </style>
 
 <div class="container">
-  <h2>Dub News Generator</h2>
+  <h2><span class="emoji">📰</span> Dub News Generator</h2>
   
   <div class="tabs">
-    <div class="tab active" data-tab="manual">Manual Input</div>
-    <div class="tab" data-tab="paste">Paste from App</div>
+    <div class="tab active" data-tab="manual-tab">Manual Input</div>
+    <div class="tab" data-tab="paste-tab">Paste from App</div>
   </div>
   
-  <!-- Manual Input Tab -->
-  <div class="tab-content active" id="manual-tab">
-    <div class="template-selection">
-      <label>Select Template Type:</label>
+  <div id="manual-tab" class="tab-content active">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📄</span>
+        <label>Select Template Type:</label>
+      </div>
       <div class="radio-group">
-        <label class="radio-option">
-          <input type="radio" name="template-type" value="breaking" checked> Breaking News
+        <label class="radio-option" id="breaking-option">
+          <input type="radio" name="template-type" value="breaking" checked> 🔴 Breaking News
         </label>
-        <label class="radio-option">
-          <input type="radio" name="template-type" value="non-breaking"> Non-Breaking News
+        <label class="radio-option" id="non-breaking-option">
+          <input type="radio" name="template-type" value="non-breaking"> 📣 Non-Breaking
         </label>
       </div>
     </div>
     
-    <label for="headline">Headline</label>
-    <input type="text" id="headline" placeholder="Enter news headline...">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📝</span>
+        <label for="headline">Headline</label>
+      </div>
+      <textarea id="headline" placeholder="Enter news headline..." rows="3"></textarea>
+      <div class="help-text">Will be formatted with ITC Cheltenham Std Book, 100pt, 102% line height</div>
+    </div>
     
-    <label for="body">Body Text</label>
-    <textarea id="body" placeholder="Enter body text..."></textarea>
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📄</span>
+        <label for="body">Body Text</label>
+      </div>
+      <textarea id="body" placeholder="Enter body text..."></textarea>
+      <div class="help-text">Used for the News Body Template (SF Pro Display Semibold, 56pt)</div>
+    </div>
     
-    <button id="create-post">Create Post</button>
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">💬</span>
+        <label for="caption">Caption</label>
+      </div>
+      <textarea id="caption" placeholder="Enter caption for social media..."></textarea>
+      <div class="help-text">Used for social media sharing of the content</div>
+    </div>
+    
+    <div class="section">
+      <div class="checkbox-option" id="cta-checkbox">
+        <input type="checkbox" id="use-cta">
+        <label for="use-cta">🔗 Include CTA (Call to Action)</label>
+      </div>
+      
+      <div id="cta-options" class="cta-options disabled-section">
+        <div class="section-title"><span class="section-icon">🎯</span> Select CTA Type:</div>
+        <div class="cta-option" id="politician-option">
+          <input type="radio" name="cta-type" id="cta-politician" value="politician" checked>
+          <label for="cta-politician"><span class="cta-icon">👨‍💼</span> Politician Template</label>
+        </div>
+        <div class="cta-option" id="crypto-option">
+          <input type="radio" name="cta-type" id="cta-crypto" value="crypto">
+          <label for="cta-crypto"><span class="cta-icon">🪙</span> Crypto Template</label>
+        </div>
+        <div class="cta-option" id="hedge-fund-option">
+          <input type="radio" name="cta-type" id="cta-hedge-fund" value="hedge-fund">
+          <label for="cta-hedge-fund"><span class="cta-icon">📊</span> Hedge Fund Template</label>
+        </div>
+        <div class="cta-option" id="search-option">
+          <input type="radio" name="cta-type" id="cta-search" value="search">
+          <label for="cta-search"><span class="cta-icon">🔍</span> Search Template</label>
+        </div>
+        <div class="help-text">CTA will be added with the appropriate disclaimer template</div>
+      </div>
+    </div>
+    
+    <div class="checkbox-option" id="force-option">
+      <input type="checkbox" id="force-create">
+      <label for="force-create">⚠️ Force Create (bypass duplicate check)</label>
+    </div>
   </div>
   
-  <!-- Paste from App Tab -->
-  <div class="tab-content" id="paste-tab">
-    <p>Paste content generated from the Dub News Python app:</p>
-    <textarea id="paste-area" placeholder="Paste the formatted content here..." rows="10"></textarea>
-    <button id="parse-content">Parse & Create Post</button>
-    <div id="parse-result"></div>
+  <div id="paste-tab" class="tab-content">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <label for="paste-from-app">Paste from Python App</label>
+      </div>
+      <textarea id="paste-from-app" placeholder="Paste the DUB_NEWS_DATA output from the Python app here..." rows="8"></textarea>
+      <div class="help-text">Format: DUB_NEWS_DATA_START... (output from the Python app)</div>
+      <button id="parse-app-data" class="secondary-button">
+        <span class="button-icon">🔄</span> Parse Data from App
+      </button>
+    </div>
   </div>
   
   <div id="error" class="error"></div>
+  
+  <button id="create-post"><span class="button-icon">✨</span> Create News Post</button>
+  
+  <div class="footer">
+    This plugin creates news posts with headlines, body text, CTAs, and appropriate disclaimers.
+  </div>
 </div>
 
 <script>
-  // Tab switching functionality
-  const tabs = document.querySelectorAll('.tab');
-  const tabContents = document.querySelectorAll('.tab-content');
+  // Create post functionality
+  let isCreating = false;
   
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      // Remove active class from all tabs and contents
-      tabs.forEach(t => t.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
+  // Add visual feedback for selections
+  document.querySelectorAll('.radio-option').forEach(option => {
+    const input = option.querySelector('input');
+    // Set initial state
+    if (input.checked) {
+      option.classList.add('selected');
+    }
+    
+    // Add click event
+    option.addEventListener('click', () => {
+      // Remove selected class from all options in group
+      const name = input.name;
+      document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+        radio.closest('.radio-option').classList.remove('selected');
+      });
       
-      // Add active class to clicked tab and corresponding content
-      tab.classList.add('active');
-      document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+      // Add selected class to this option
+      option.classList.add('selected');
+      input.checked = true;
+      
+      // Trigger change event for the input
+      input.dispatchEvent(new Event('change'));
     });
   });
   
-  // Manual post creation
-  document.getElementById('create-post').onclick = () => {
-    const headline = document.getElementById('headline').value;
-    const body = document.getElementById('body').value;
+  // Add visual feedback for CTA options
+  document.querySelectorAll('.cta-option').forEach(option => {
+    const input = option.querySelector('input');
+    // Set initial state
+    if (input.checked) {
+      option.classList.add('selected');
+    }
+    
+    // Add click event
+    option.addEventListener('click', () => {
+      // Remove selected class from all options
+      document.querySelectorAll('.cta-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      
+      // Add selected class to this option
+      option.classList.add('selected');
+      input.checked = true;
+      
+      // Trigger change event for the input
+      input.dispatchEvent(new Event('change'));
+    });
+  });
+  
+  // Add visual feedback for checkbox options
+  document.querySelectorAll('.checkbox-option').forEach(option => {
+    const input = option.querySelector('input');
+    
+    // Set initial state
+    if (input.checked) {
+      option.classList.add('checked');
+    }
+    
+    // Add click event
+    option.addEventListener('click', () => {
+      input.checked = !input.checked;
+      
+      if (input.checked) {
+        option.classList.add('checked');
+      } else {
+        option.classList.remove('checked');
+      }
+      
+      // Trigger change event for the input
+      input.dispatchEvent(new Event('change'));
+    });
+  });
+  
+  // Show/hide CTA options based on checkbox
+  document.getElementById('use-cta').addEventListener('change', function() {
+    const ctaOptions = document.getElementById('cta-options');
+    if (this.checked) {
+      ctaOptions.classList.remove('disabled-section');
+    } else {
+      ctaOptions.classList.add('disabled-section');
+    }
+    updateButtonText();
+  });
+  
+  // Update button text based on selections
+  function updateButtonText() {
     const templateType = document.querySelector('input[name="template-type"]:checked').value;
+    const useCta = document.getElementById('use-cta').checked;
+    let buttonText = `✨ Create ${templateType === 'breaking' ? '🔴 Breaking' : '📣 Non-Breaking'} News Post`;
     
-    if (!headline || !body) {
-      document.getElementById('error').textContent = 'Please fill in both headline and body text.';
-      return;
+    if (useCta) {
+      const ctaType = document.querySelector('input[name="cta-type"]:checked').value;
+      let ctaEmoji = '🔗';
+      switch(ctaType) {
+        case 'politician': ctaEmoji = '👨‍💼'; break;
+        case 'crypto': ctaEmoji = '🪙'; break;
+        case 'hedge-fund': ctaEmoji = '📊'; break;
+        case 'search': ctaEmoji = '🔍'; break;
+      }
+      buttonText += ` with ${ctaEmoji} ${ctaType.charAt(0).toUpperCase() + ctaType.slice(1)} CTA`;
     }
     
-    createPost(headline, body, templateType);
-  };
-  
-  // Parse pasted content and create post
-  document.getElementById('parse-content').onclick = () => {
-    const pastedContent = document.getElementById('paste-area').value;
-    const parseResult = parseFormattedContent(pastedContent);
-    
-    if (parseResult.error) {
-      document.getElementById('error').textContent = parseResult.error;
-      document.getElementById('parse-result').textContent = '';
-      return;
-    }
-    
-    document.getElementById('error').textContent = '';
-    document.getElementById('parse-result').textContent = 'Content parsed successfully! Creating post...';
-    
-    createPost(parseResult.headline, parseResult.body, parseResult.templateType);
-  };
-  
-  // Function to parse the formatted content
-  function parseFormattedContent(content) {
-    try {
-      // Check if content has the expected format
-      if (!content.includes('DUB_NEWS_DATA_START') || !content.includes('DUB_NEWS_DATA_END')) {
-        return { error: 'Invalid content format. Please paste the complete output from the app.' };
-      }
-      
-      // Extract data between markers
-      const dataSection = content.split('DUB_NEWS_DATA_START')[1].split('DUB_NEWS_DATA_END')[0];
-      const lines = dataSection.trim().split('\n');
-      
-      // Initialize result object
-      const result = {};
-      
-      // Parse each line
-      for (const line of lines) {
-        if (line.startsWith('TEMPLATE_TYPE:')) {
-          result.templateType = line.replace('TEMPLATE_TYPE:', '').trim();
-        } else if (line.startsWith('HEADLINE:')) {
-          result.headline = line.replace('HEADLINE:', '').trim();
-        } else if (line.startsWith('BODY:')) {
-          result.body = line.replace('BODY:', '').trim();
-        } else if (line.startsWith('INSTAGRAM:')) {
-          result.instagram = line.replace('INSTAGRAM:', '').trim();
-        }
-      }
-      
-      // Validate required fields
-      if (!result.templateType || !result.headline || !result.body) {
-        return { error: 'Missing required fields in the parsed content.' };
-      }
-      
-      return result;
-    } catch (error) {
-      return { error: 'Error parsing content: ' + error.message };
-    }
+    document.getElementById('create-post').innerHTML = `<span class="button-icon">✨</span> ${buttonText}`;
   }
   
-  // Function to create post (common for both methods)
-  function createPost(headline, body, templateType) {
+  // Add event listeners for all form controls to update button text
+  document.querySelectorAll('input[name="template-type"], input[name="cta-type"], #use-cta')
+    .forEach(input => input.addEventListener('change', updateButtonText));
+  
+  // Call once to set initial text
+  updateButtonText();
+  
+  document.getElementById('create-post').onclick = () => {
+    if (isCreating) return; // Prevent multiple rapid clicks
+    
+    isCreating = true;
+    setTimeout(() => { isCreating = false; }, 2000); // Reset after 2 seconds
+    
+    const headline = document.getElementById('headline').value;
+    const body = document.getElementById('body').value;
+    const caption = document.getElementById('caption').value;
+    const templateType = document.querySelector('input[name="template-type"]:checked').value;
+    const useCta = document.getElementById('use-cta').checked;
+    const ctaType = useCta ? document.querySelector('input[name="cta-type"]:checked').value : '';
+    const forceCreate = document.getElementById('force-create').checked;
+    
+    if (!headline) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = '⚠️ Please enter a headline.';
+      errorEl.classList.add('visible');
+      isCreating = false;
+      return;
+    }
+    
+    document.getElementById('error').classList.remove('visible');
+    
     parent.postMessage({
       pluginMessage: {
         type: 'create-post',
         headline,
         body,
-        templateType
+        caption,
+        templateType,
+        useCta,
+        ctaType,
+        instagram: "",
+        force: forceCreate
       }
     }, '*');
-  }
+  };
+  
+  // Handle messages from the plugin code
+  window.onmessage = (event) => {
+    const message = event.data.pluginMessage;
+    if (!message) return;
+    
+    if (message.type === 'confirm-duplicate') {
+      if (confirm(message.message)) {
+        // User confirmed, create the post anyway
+        const headline = document.getElementById('headline').value;
+        const body = document.getElementById('body').value;
+        const caption = document.getElementById('caption').value;
+        const templateType = document.querySelector('input[name="template-type"]:checked').value;
+        const useCta = document.getElementById('use-cta').checked;
+        const ctaType = useCta ? document.querySelector('input[name="cta-type"]:checked').value : '';
+        
+        // Add a flag to force creation even if duplicate
+        parent.postMessage({
+          pluginMessage: {
+            type: 'create-post',
+            headline,
+            body,
+            caption,
+            templateType,
+            useCta,
+            ctaType,
+            instagram: "",
+            force: true
+          }
+        }, '*');
+      }
+      isCreating = false;
+    }
+  };
+  
+  // Add keyboard shortcut
+  document.addEventListener('keydown', (e) => {
+    // Ctrl+Enter or Cmd+Enter to trigger generate
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      document.getElementById('create-post').click();
+    }
+  });
+  
+  document.getElementById('parse-app-data').onclick = () => {
+    const pastedData = document.getElementById('paste-from-app').value.trim();
+    
+    if (!pastedData || !pastedData.includes('DUB_NEWS_DATA_START')) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = '⚠️ Invalid data format. Please paste the complete output from the Python app.';
+      errorEl.classList.add('visible');
+      return;
+    }
+    
+    try {
+      // Extract the data between the start and end markers
+      const startMarker = 'DUB_NEWS_DATA_START';
+      const endMarker = 'DUB_NEWS_DATA_END';
+      
+      const startIndex = pastedData.indexOf(startMarker) + startMarker.length;
+      const endIndex = pastedData.indexOf(endMarker);
+      
+      if (startIndex === -1 || endIndex === -1) {
+        throw new Error('Invalid data format - missing start or end markers');
+      }
+      
+      const dataSection = pastedData.substring(startIndex, endIndex).trim();
+      const lines = dataSection.split('\n');
+      
+      // Create an object to hold the parsed data
+      const parsedData = {};
+      
+      // Parse each line
+      lines.forEach(line => {
+        const colonIndex = line.indexOf(':');
+        if (colonIndex > -1) {
+          const key = line.substring(0, colonIndex).trim();
+          const value = line.substring(colonIndex + 1).trim();
+          parsedData[key] = value;
+        }
+      });
+      
+      // Fill the form with the parsed data
+      
+      // Template type
+      const templateType = parsedData['TEMPLATE_TYPE'] || 'non-breaking';
+      document.querySelectorAll('input[name="template-type"]').forEach(input => {
+        input.checked = input.value === templateType;
+        if (input.checked) {
+          input.closest('.radio-option').classList.add('selected');
+        } else {
+          input.closest('.radio-option').classList.remove('selected');
+        }
+      });
+      
+      // Headline
+      document.getElementById('headline').value = parsedData['HEADLINE'] || '';
+      
+      // Body
+      document.getElementById('body').value = parsedData['BODY'] || '';
+      
+      // Caption (Instagram)
+      document.getElementById('caption').value = parsedData['INSTAGRAM'] || '';
+      
+      // CTA
+      const useCta = (parsedData['USE_CTA'] || '').toLowerCase() === 'true';
+      document.getElementById('use-cta').checked = useCta;
+      
+      // Update UI to show/hide CTA options
+      const ctaOptions = document.getElementById('cta-options');
+      if (useCta) {
+        ctaOptions.classList.remove('disabled-section');
+        
+        // Set CTA type
+        const ctaType = (parsedData['CTA_TYPE'] || '').toLowerCase();
+        document.querySelectorAll('input[name="cta-type"]').forEach(input => {
+          input.checked = input.value.toLowerCase() === ctaType;
+          if (input.checked) {
+            input.closest('.cta-option').classList.add('selected');
+          } else {
+            input.closest('.cta-option').classList.remove('selected');
+          }
+        });
+      } else {
+        ctaOptions.classList.add('disabled-section');
+      }
+      
+      // Update any visual states
+      document.querySelectorAll('.checkbox-option').forEach(option => {
+        const input = option.querySelector('input');
+        if (input.checked) {
+          option.classList.add('checked');
+        } else {
+          option.classList.remove('checked');
+        }
+      });
+      
+      // Update the button text
+      updateButtonText();
+      
+      // Hide any error message
+      document.getElementById('error').classList.remove('visible');
+      
+      // Add success message
+      const successMessageDiv = document.createElement('div');
+      successMessageDiv.className = 'success-message';
+      successMessageDiv.textContent = '✅ Successfully parsed data! Click "Create News Post" to generate.';
+      
+      // Insert after the parse button
+      const parseButton = document.getElementById('parse-app-data');
+      parseButton.parentNode.insertBefore(successMessageDiv, parseButton.nextSibling);
+      
+      // Remove success message after 5 seconds
+      setTimeout(() => {
+        successMessageDiv.remove();
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error parsing data:', error);
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = `⚠️ Error parsing data: ${error.message}`;
+      errorEl.classList.add('visible');
+    }
+  };
+  
+  // Add this to handle tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active class to current tab
+      tab.classList.add('active');
+      const tabId = tab.getAttribute('data-tab');
+      document.getElementById(tabId).classList.add('active');
+    });
+  });
 </script> 
