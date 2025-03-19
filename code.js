@@ -1,11 +1,13 @@
 // Show the plugin UI
-figma.showUI(__html__, { width: 480, height: 650 });
+figma.showUI(__html__, { width: 680, height: 620 });
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'resize') {
-    // Handle resize request
-    figma.ui.resize(480, msg.height);
+    // Support both width and height for resizing
+    const newWidth = msg.width || 680; // Default to 680 if not specified
+    const newHeight = msg.height || 620; // Default to 620 if not specified
+    figma.ui.resize(newWidth, newHeight);
     return;
   }
   
@@ -33,12 +35,13 @@ figma.ui.onmessage = async (msg) => {
       const createdElements = [];
       
       // Check if this is a story, market recap, or a regular post
+      // Handle both market-recap (hyphen) and market_recap (underscore) formats
       if (contentType === 'story') {
         // Create story with two templates - headline and body, passing the source
         const storyElements = await createStory(headline, body, templateType, source);
         createdElements.push(...storyElements);
         figma.notify(`✅ Created Instagram story with your content!`);
-      } else if (contentType === 'market-recap') {
+      } else if (contentType === 'market-recap' || contentType === 'market_recap') {
         // Create market recap post - pass the CTA and caption parameters
         const marketElements = await createMarketRecap(headline, body, source, useCta, ctaType, caption);
         createdElements.push(...marketElements);
@@ -1111,63 +1114,53 @@ async function createMarketRecap(headline, body, source = "", useCta = false, ct
   const createdElements = [];
   
   try {
-    // Find the market recap headline template
+    // Find the Market Recap templates
     const headlineTemplate = findMarketRecapHeadlineTemplate();
+    const bodyTemplate = findMarketRecapBodyTemplate();
     
     if (!headlineTemplate) {
-      throw new Error("Market Recap headline template not found. Please make sure you have a template named 'Market Recap Main' in the 'Disclosed Advisors Templates' section.");
+      console.error("Market Recap headline template not found");
+      figma.notify("⚠️ Market Recap headline template not found. Please make sure you have a template named 'Market Recap Headline Template' in your Figma file.");
+      throw new Error("Market Recap headline template not found");
     }
     
-    // Create a duplicate of the headline template
+    if (!bodyTemplate) {
+      console.error("Market Recap body template not found");
+      figma.notify("⚠️ Market Recap body template not found. Please make sure you have a template named 'Market Recap Body Template' in your Figma file.");
+      throw new Error("Market Recap body template not found");
+    }
+    
+    // Create duplicates of the headline and body templates
     const headlineFrame = headlineTemplate.clone();
-    figma.notify("Created headline frame for market recap");
+    figma.notify("Created headline frame for Market Recap");
+    
+    const bodyFrame = bodyTemplate.clone();
+    figma.notify("Created body frame for Market Recap");
     
     // Position the headline frame
     headlineFrame.x = headlineTemplate.x + headlineTemplate.width + 144;
     headlineFrame.y = headlineTemplate.y;
     figma.currentPage.appendChild(headlineFrame);
     
+    // Position the body frame
+    bodyFrame.x = headlineFrame.x + headlineFrame.width + 144;
+    bodyFrame.y = headlineFrame.y;
+    figma.currentPage.appendChild(bodyFrame);
+    
     // Update the headline text
     await updateMarketRecapHeadline(headlineFrame, headline);
     
-    // Add to created elements
-    createdElements.push(headlineFrame);
+    // Update the body text and disclaimer source
+    await updateMarketRecapBody(bodyFrame, body, source);
     
-    // Reference to the latest element for positioning
-    let latestElement = headlineFrame;
+    // Add the frames to the elements array
+    createdElements.push(headlineFrame, bodyFrame);
     
-    // Now create the body frame if body text is provided
-    if (body && body.trim() !== "") {
-      // Find the market recap body template
-      const bodyTemplate = findMarketRecapBodyTemplate();
-      
-      if (!bodyTemplate) {
-        throw new Error("Market Recap body template not found. Please make sure you have a template named 'Market Recap Body' in the 'Disclosed Advisors Templates' section.");
-      }
-      
-      // Create a duplicate of the body template
-      const bodyFrame = bodyTemplate.clone();
-      figma.notify("Created body frame for market recap");
-      
-      // Position the body frame
-      bodyFrame.x = latestElement.x + latestElement.width + 144;
-      bodyFrame.y = latestElement.y;
-      figma.currentPage.appendChild(bodyFrame);
-      
-      // Update the body text and source
-      await updateMarketRecapBody(bodyFrame, body, source);
-      
-      // Add to created elements
-      createdElements.push(bodyFrame);
-      
-      // Update latest element reference
-      latestElement = bodyFrame;
-    }
-    
-    // Handle CTA and disclaimer if requested
+    // Handle CTA and disclaimer
     if (useCta) {
       try {
-        const ctaPost = await createCtaPost(ctaType, latestElement);
+        // Create the CTA
+        const ctaPost = await createCtaPost(ctaType, bodyFrame);
         createdElements.push(ctaPost);
         
         // Determine which disclaimer to use
@@ -1176,55 +1169,50 @@ async function createMarketRecap(headline, body, source = "", useCta = false, ct
         // Add the appropriate disclaimer with source
         const disclaimerPost = await addDisclaimer(ctaPost, usePerformanceData, source);
         createdElements.push(disclaimerPost);
-        
-        // Update latest element reference
-        latestElement = disclaimerPost;
       } catch (error) {
-        console.error("Error with CTA or disclaimer:", error);
-        figma.notify(`Error with CTA: ${error.message}`, { error: true });
+        console.error("Error with CTA or disclaimer for Market Recap:", error);
+        figma.notify(`Error with CTA or disclaimer: ${error.message}`, { error: true });
       }
-    } else if (body && body.trim() !== "") {
-      // Add only the disclaimer without performance data if there's a body but no CTA
+    } else {
+      // Add the disclaimer without performance data if there's no CTA
       try {
-        const disclaimerPost = await addDisclaimer(latestElement, false, source);
+        const disclaimerPost = await addDisclaimer(bodyFrame, false, source);
         createdElements.push(disclaimerPost);
-        
-        // Update latest element reference
-        latestElement = disclaimerPost;
       } catch (error) {
-        console.error("Error with disclaimer:", error);
+        console.error("Error with disclaimer for Market Recap:", error);
         figma.notify(`Error with disclaimer: ${error.message}`, { error: true });
       }
     }
     
-    // Add caption if provided
+    // Add caption if provided (after disclaimer)
     if (caption && caption.trim() !== "") {
       try {
         const captionElement = await createCaption(caption);
         createdElements.push(captionElement);
       } catch (error) {
-        console.error("Error creating caption:", error);
-        figma.notify("Created market recap, but there was an error with the caption: " + error.message);
+        console.error("Error creating caption for Market Recap:", error);
+        figma.notify("Created Market Recap, but there was an error with the caption: " + error.message);
       }
     }
     
   } catch (error) {
-    console.error("Error creating market recap:", error);
-    figma.notify(`Error creating market recap: ${error.message}`, { error: true });
+    console.error("Error creating Market Recap:", error);
+    figma.notify(`Error creating Market Recap: ${error.message}`, { error: true });
   }
   
   return createdElements;
 }
 
-// Function to find the market recap headline template
+// Function to find the Market Recap headline template
 function findMarketRecapHeadlineTemplate() {
-  // First try to find the template by name directly
+  // First try to find the template directly by name
   const templateByName = figma.currentPage.findOne(node => 
     (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
-    node.name === "Market Recap Main"
+    (node.name === "Market Recap Headline Template" || node.name === "Market Recap Main")
   );
   
   if (templateByName) {
+    console.log("Found Market Recap template directly on page:", templateByName.name);
     return templateByName;
   }
   
@@ -1235,25 +1223,59 @@ function findMarketRecapHeadlineTemplate() {
   );
   
   if (!templatesSection) {
-    return null;
+    console.error("Could not find Disclosed Advisors Templates section");
+    // Try to find the template anywhere on the page with a similar name
+    return figma.currentPage.findOne(node => 
+      (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+      (node.name.includes("Market Recap") || 
+       node.name.includes("market recap") ||
+       node.name.includes("Market") && node.name.includes("Headline"))
+    );
   }
   
-  // Look for the template inside the templates section
-  return templatesSection.findOne(node => 
+  console.log("Found Templates section, searching for Market Recap Main or Headline Template");
+  
+  // Look for templates inside the section
+  const marketRecapMain = templatesSection.findOne(node => 
     (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
     node.name === "Market Recap Main"
   );
+  
+  if (marketRecapMain) {
+    console.log("Found Market Recap Main template");
+    return marketRecapMain;
+  }
+  
+  const marketRecapHeadline = templatesSection.findOne(node => 
+    (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+    node.name === "Market Recap Headline Template"
+  );
+  
+  if (marketRecapHeadline) {
+    console.log("Found Market Recap Headline Template");
+    return marketRecapHeadline;
+  }
+  
+  // As a fallback, try to use any headline template
+  const fallbackTemplate = findBreakingNewsTemplate() || findNonBreakingNewsTemplate();
+  if (fallbackTemplate) {
+    console.warn("Using fallback template for Market Recap headline");
+    return fallbackTemplate;
+  }
+  
+  return null;
 }
 
-// Function to find the market recap body template
+// Function to find the Market Recap body template
 function findMarketRecapBodyTemplate() {
   // First try to find the template by name directly
   const templateByName = figma.currentPage.findOne(node => 
     (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
-    node.name === "Market Recap Body"
+    (node.name === "Market Recap Body Template" || node.name === "Market Recap Body")
   );
   
   if (templateByName) {
+    console.log("Found Market Recap Body template directly on page:", templateByName.name);
     return templateByName;
   }
   
@@ -1264,85 +1286,162 @@ function findMarketRecapBodyTemplate() {
   );
   
   if (!templatesSection) {
-    return null;
+    console.error("Could not find Disclosed Advisors Templates section");
+    // Try to find the template anywhere on the page with a similar name
+    return figma.currentPage.findOne(node => 
+      (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
+      (node.name.includes("Market Recap Body") || 
+       node.name.includes("market recap body"))
+    );
   }
   
+  console.log("Found Templates section, searching for Market Recap Body Template");
+  
   // Look for the template inside the templates section
-  return templatesSection.findOne(node => 
+  const marketRecapBody = templatesSection.findOne(node => 
     (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') && 
-    node.name === "Market Recap Body"
+    (node.name === "Market Recap Body Template" || node.name === "Market Recap Body")
   );
+  
+  if (marketRecapBody) {
+    console.log("Found Market Recap Body template");
+    return marketRecapBody;
+  }
+  
+  // As a fallback, try to use the regular body template
+  const fallbackTemplate = findBodyTemplate();
+  if (fallbackTemplate) {
+    console.warn("Using fallback template for Market Recap body");
+    return fallbackTemplate;
+  }
+  
+  return null;
 }
 
-// Function to update the headline in the market recap headline template
+// Function to update the headline in the Market Recap headline template
 async function updateMarketRecapHeadline(headlineFrame, headline) {
   try {
-    // Find the headline text node
-    const headlineTextNode = headlineFrame.findOne(node => 
+    console.log("Updating Market Recap headline:", headline);
+    
+    // Find the headline text node with the exact name first
+    let headlineTextNode = headlineFrame.findOne(node => 
       node.type === 'TEXT' && 
-      (node.name === "Market Recap Headline" || node.characters.includes('TEST TEXT HERE') || node.characters.includes('Headline'))
+      node.name === "Market Recap Headline Text"
     );
     
+    // If not found by exact name, try similar names
     if (!headlineTextNode) {
-      throw new Error("Headline text node not found in the market recap template");
+      headlineTextNode = headlineFrame.findOne(node => 
+        node.type === 'TEXT' && 
+        (node.name === "Headline" || 
+         node.name === "Market_Recap_Headline" ||
+         node.name.toLowerCase().includes("headline") ||
+         node.characters.includes('TEST TEXT HERE'))
+      );
     }
     
+    if (!headlineTextNode) {
+      // Debugging: Log all text nodes in the frame
+      console.log("Available text nodes in headline frame:");
+      headlineFrame.findAll(node => {
+        if (node.type === 'TEXT') {
+          console.log(`- "${node.name}": ${node.characters.substring(0, 20)}...`);
+        }
+        return false;
+      });
+      
+      throw new Error("Headline text node not found in the Market Recap template. Looking for 'Market Recap Headline Text'");
+    }
+    
+    console.log("Found headline text node:", headlineTextNode.name);
+    
     // Load the required font
-    const targetFont = { family: "ITC Cheltenham Std", style: "Book" };
-    await figma.loadFontAsync(targetFont);
+    try {
+      const targetFont = { family: "ITC Cheltenham Std", style: "Book" };
+      await figma.loadFontAsync(targetFont);
+      headlineTextNode.fontName = targetFont;
+    } catch (fontError) {
+      console.warn("Couldn't load ITC Cheltenham font, trying existing font", fontError);
+      await figma.loadFontAsync(headlineTextNode.fontName);
+    }
     
     // Update the text and formatting
-    headlineTextNode.fontName = targetFont;
     headlineTextNode.fontSize = 100;
     headlineTextNode.characters = headline;
+    console.log("Successfully updated Market Recap headline");
     
     return true;
   } catch (error) {
-    console.error("Error updating market recap headline:", error);
+    console.error("Error updating Market Recap headline:", error);
     throw error;
   }
 }
 
-// Function to update the body in the market recap body template
+// Function to update the body in the Market Recap body template
 async function updateMarketRecapBody(bodyFrame, body, source = "") {
   try {
-    // Find the body text node
-    const bodyTextNode = bodyFrame.findOne(node => 
+    console.log("Updating Market Recap body text");
+    
+    // Find the body text node with the exact name first
+    let bodyTextNode = bodyFrame.findOne(node => 
       node.type === 'TEXT' && 
-      (node.name === "Market Recap Body" || node.characters.includes('TEST TEXT HERE') || node.characters.includes('Body'))
+      node.name === "Market Recap Body Text"
     );
     
+    // If not found by exact name, try similar names
     if (!bodyTextNode) {
-      throw new Error("Body text node not found in the market recap template");
+      bodyTextNode = bodyFrame.findOne(node => 
+        node.type === 'TEXT' && 
+        (node.name === "Body" || 
+         node.name === "Market_Recap_Body" ||
+         node.name.toLowerCase().includes("body") ||
+         node.characters.includes('TEST TEXT HERE'))
+      );
     }
     
+    if (!bodyTextNode) {
+      // Debugging: Log all text nodes in the frame
+      console.log("Available text nodes in body frame:");
+      bodyFrame.findAll(node => {
+        if (node.type === 'TEXT') {
+          console.log(`- "${node.name}": ${node.characters.substring(0, 20)}...`);
+        }
+        return false;
+      });
+      
+      throw new Error("Body text node not found in the Market Recap template. Looking for 'Market Recap Body Text'");
+    }
+    
+    console.log("Found body text node:", bodyTextNode.name);
+    
     // Load the required font
-    const targetFont = { family: "SF Pro Display", style: "Semibold" };
-    await figma.loadFontAsync(targetFont);
+    try {
+      const targetFont = { family: "SF Pro Display", style: "Semibold" };
+      await figma.loadFontAsync(targetFont);
+      bodyTextNode.fontName = targetFont;
+    } catch (fontError) {
+      console.warn("Couldn't load SF Pro Display font, trying existing font", fontError);
+      await figma.loadFontAsync(bodyTextNode.fontName);
+    }
     
     // Update the text and formatting
-    bodyTextNode.fontName = targetFont;
     bodyTextNode.fontSize = 56;
-    
-    // Update the text content
     bodyTextNode.characters = body;
     
     // Set line height for better readability
     bodyTextNode.lineHeight = { value: 102, unit: 'PERCENT' };
     
-    // Set text-specific properties
-    if (bodyTextNode.textAutoResize) {
-      bodyTextNode.textAutoResize = 'HEIGHT';
-    }
+    console.log("Successfully updated Market Recap body text");
     
-    console.log("Successfully updated market recap body with text:", body);
-    
-    // If source is provided, update the source/disclaimer text
+    // If source is provided, update the disclaimer text
     if (source && source.trim() !== "") {
-      // Find the source/disclaimer text node
+      // Find the disclaimer text node
       const disclaimerTextNode = bodyFrame.findOne(node => 
         node.type === 'TEXT' && 
-        (node.name === "Source" || node.name === "Disclaimer" || node.characters.includes('<SOURCE>'))
+        (node.name === "Disclaimer" || 
+         node.name === "Market_Recap_Disclaimer" ||
+         node.name.includes("Disclaimer") ||
+         node.characters.includes('<SOURCE>'))
       );
       
       if (disclaimerTextNode) {
@@ -1353,18 +1452,18 @@ async function updateMarketRecapBody(bodyFrame, body, source = "") {
           // Replace <SOURCE> with the actual source
           disclaimerTextNode.characters = disclaimerTextNode.characters.replace('<SOURCE>', source);
           
-          console.log(`Updated source in market recap to: ${source}`);
+          console.log(`Updated source in Market Recap disclaimer to: ${source}`);
         } catch (error) {
-          console.error("Error updating source in market recap:", error);
+          console.error("Error updating source in Market Recap disclaimer:", error);
         }
       } else {
-        console.warn("Source/disclaimer text node not found in market recap body template");
+        console.warn("Disclaimer text node not found in Market Recap body template");
       }
     }
     
     return true;
   } catch (error) {
-    console.error("Error updating market recap body:", error);
+    console.error("Error updating Market Recap body:", error);
     throw error;
   }
 }

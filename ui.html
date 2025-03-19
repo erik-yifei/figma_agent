@@ -3,31 +3,43 @@
     font-family: 'Inter', sans-serif;
     padding: 20px;
     color: #333;
-    background-color: #f9f9f9;
+    background-color: #f4f6f9;
+    margin: 0;
+    transition: background-color 0.3s ease;
   }
   
   .container {
     width: 100%;
-    max-width: 450px;
+    max-width: 640px;
     margin: 0 auto;
     background-color: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
   }
   
   h2 {
     margin-top: 0;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    color: #1E2A3B;
+    letter-spacing: -0.01em;
   }
   
   h2 .emoji {
-    margin-right: 8px;
-    font-size: 20px;
+    margin-right: 10px;
+    font-size: 24px;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
   }
   
   label {
@@ -36,16 +48,26 @@
     margin-bottom: 8px;
     font-weight: 500;
     font-size: 13px;
+    color: #1E2A3B;
   }
   
   input, textarea, select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #E5E5E5;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 12px;
+    border: 1px solid #E5E9F2;
+    border-radius: 8px;
+    font-size: 14px;
     box-sizing: border-box;
-    background-color: #fcfcfc;
+    background-color: #FCFCFD;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #18A0FB;
+    box-shadow: 0 0 0 3px rgba(24,160,251,0.15);
+    background-color: #ffffff;
   }
   
   textarea {
@@ -54,81 +76,146 @@
   }
   
   button {
-    margin-top: 20px;
+    margin-top: 24px;
     background-color: #18A0FB;
     color: white;
     border: none;
-    padding: 12px 16px;
-    border-radius: 6px;
+    padding: 12px 18px;
+    border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     width: 100%;
     font-size: 14px;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(24,160,251,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0)
+    );
+    opacity: 0;
+    transition: opacity 0.2s ease;
   }
   
   button:hover {
     background-color: #0D8EE4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(24,160,251,0.4);
+  }
+  
+  button:hover::after {
+    opacity: 1;
+  }
+  
+  button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(24,160,251,0.3);
   }
   
   .button-icon {
     margin-right: 8px;
+    animation: wobble 1.5s ease infinite;
+  }
+  
+  @keyframes wobble {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-2px) rotate(-1deg); }
+    30% { transform: translateX(1px) rotate(1deg); }
+    45% { transform: translateX(-1px) rotate(0deg); }
+    60% { transform: translateX(1px) rotate(0deg); }
+    75% { transform: translateX(0px) rotate(0deg); }
   }
   
   .error {
-    color: #F24822;
-    margin-top: 8px;
-    font-size: 12px;
-    padding: 8px;
-    background-color: #FFF1F0;
-    border-radius: 4px;
+    color: #E53E3E;
+    margin-top: 10px;
+    font-size: 13px;
+    padding: 12px;
+    background-color: #FFF5F5;
+    border-radius: 8px;
+    border-left: 3px solid #E53E3E;
     display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   
   .error.visible {
-    display: block;
+    display: flex;
+    align-items: center;
+  }
+  
+  .error.visible::before {
+    content: "⚠️";
+    margin-right: 8px;
   }
   
   .template-selection {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
   
   .radio-group {
     display: flex;
-    gap: 15px;
-    margin-top: 8px;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
   }
   
   .radio-option {
     display: flex;
     align-items: center;
     cursor: pointer;
-    background-color: #f5f5f5;
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: background-color 0.2s;
+    background-color: #F7FAFC;
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border: 1px solid #E5E9F2;
+    flex: 1;
+    min-width: 120px;
   }
   
   .radio-option:hover {
-    background-color: #efefef;
+    background-color: #EDF2F7;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .radio-option.selected {
-    background-color: #e3f2fd;
+    background-color: #EBF8FF;
+    border-color: #18A0FB;
+    box-shadow: 0 2px 5px rgba(24,160,251,0.15);
   }
   
   .radio-option input {
-    margin-right: 6px;
+    margin-right: 8px;
     width: auto;
   }
   
   .section {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #EDF2F7;
+    transition: all 0.3s ease;
+  }
+  
+  .section:hover {
+    transform: translateY(-2px);
   }
   
   .section:last-child {
@@ -139,37 +226,51 @@
   .section-header {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   
   .section-icon {
-    margin-right: 8px;
-    font-size: 16px;
+    margin-right: 10px;
+    font-size: 18px;
+    animation: bounceIn 1s;
+  }
+  
+  @keyframes bounceIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
   }
   
   .help-text {
-    font-size: 11px;
-    color: #888;
-    margin-top: 4px;
+    font-size: 12px;
+    color: #718096;
+    margin-top: 6px;
+    line-height: 1.4;
+    padding-left: 2px;
   }
   
   .checkbox-option {
     display: flex;
     align-items: center;
     margin-top: 12px;
-    background-color: #f8f8f8;
-    padding: 10px;
-    border-radius: 6px;
+    background-color: #F7FAFC;
+    padding: 12px 14px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    border: 1px solid #E5E9F2;
   }
   
   .checkbox-option:hover {
-    background-color: #f0f0f0;
+    background-color: #EDF2F7;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .checkbox-option.checked {
-    background-color: #e3f2fd;
+    background-color: #EBF8FF;
+    border-color: #18A0FB;
+    box-shadow: 0 2px 5px rgba(24,160,251,0.15);
   }
   
   .checkbox-option input {
@@ -180,32 +281,39 @@
   .cta-options {
     margin-top: 15px;
     padding: 15px;
-    background-color: #f8f8f8;
-    border-radius: 8px;
+    background-color: #F7FAFC;
+    border-radius: 10px;
+    border: 1px solid #E5E9F2;
   }
   
   .disabled-section {
     opacity: 0.6;
     pointer-events: none;
+    filter: grayscale(30%);
   }
   
   .cta-option {
     display: flex;
     align-items: center;
     margin-bottom: 12px;
-    padding: 8px 10px;
+    padding: 10px 12px;
     background-color: white;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    border: 1px solid #E5E9F2;
   }
   
   .cta-option:hover {
-    background-color: #f0f0f0;
+    background-color: #F7FAFC;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .cta-option.selected {
-    background-color: #e3f2fd;
+    background-color: #EBF8FF;
+    border-color: #18A0FB;
+    box-shadow: 0 2px 5px rgba(24,160,251,0.15);
   }
   
   .cta-option input {
@@ -222,70 +330,97 @@
   }
   
   .cta-icon {
-    margin-right: 8px;
-    font-size: 16px;
+    margin-right: 10px;
+    font-size: 18px;
   }
   
   .section-title {
     font-weight: 600;
     margin-top: 0;
-    margin-bottom: 12px;
-    font-size: 14px;
+    margin-bottom: 14px;
+    font-size: 15px;
     display: flex;
     align-items: center;
+    color: #1E2A3B;
   }
   
   .footer {
     text-align: center;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #f0f0f0;
-    font-size: 11px;
-    color: #999;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid #EDF2F7;
+    font-size: 12px;
+    color: #718096;
+    line-height: 1.5;
   }
   
   .secondary-button {
-    background-color: #f0f0f0;
-    color: #333;
-    margin-top: 10px;
+    background-color: #EDF2F7;
+    color: #1E2A3B;
+    margin-top: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   }
   
   .secondary-button:hover {
-    background-color: #e0e0e0;
+    background-color: #E2E8F0;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
   }
   
   .success-message {
-    background-color: #e6f7e6;
-    color: #2e7d32;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 10px;
+    background-color: #F0FFF4;
+    color: #276749;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
     font-size: 13px;
+    border-left: 3px solid #48BB78;
+    display: flex;
+    align-items: center;
+    animation: slideIn 0.3s ease;
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .success-message::before {
+    content: "✅";
+    margin-right: 8px;
   }
   
   /* Tab-like navigation for input methods */
   .tabs {
     display: flex;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #E5E9F2;
     padding-bottom: 0;
   }
   
   .tab {
-    padding: 10px 15px;
+    padding: 12px 16px;
     cursor: pointer;
     margin-right: 5px;
-    border-radius: 6px 6px 0 0;
-    background-color: #f5f5f5;
+    border-radius: 8px 8px 0 0;
+    background-color: #F7FAFC;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .tab:hover {
+    background-color: #EDF2F7;
   }
   
   .tab.active {
-    background-color: #e3f2fd;
-    border-bottom: 2px solid #1a73e8;
+    background-color: #EBF8FF;
+    border-bottom: 2px solid #18A0FB;
+    color: #18A0FB;
   }
   
   .tab-content {
     display: none;
+    animation: fadeIn 0.3s ease;
   }
   
   .tab-content.active {
@@ -295,16 +430,146 @@
   /* Resizing handle */
   .resize-handle {
     position: absolute;
-    bottom: 10px;
-    right: 20px;
+    bottom: 15px;
+    right: 25px;
     cursor: nwse-resize;
     font-size: 20px;
-    color: #ccc;
-    transition: color 0.2s;
+    color: #CBD5E0;
+    transition: all 0.2s ease;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
   }
   
   .resize-handle:hover {
-    color: #888;
+    color: #718096;
+    background-color: #EDF2F7;
+    transform: scale(1.1);
+  }
+  
+  /* Dark mode support for future implementation */
+  @media (prefers-color-scheme: dark) {
+    body {
+      /* Dark mode styles can be added later */
+    }
+  }
+  
+  /* Additional CSS for new interactive elements */
+  .ripple-effect {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    margin-top: -50px;
+    margin-left: -50px;
+    animation: ripple 0.5s linear;
+    opacity: 0;
+  }
+  
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+  
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-shake {
+    animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    border-color: #E53E3E !important;
+  }
+  
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+  
+  .field-updated {
+    animation: highlight 0.8s ease;
+    border-color: #38B2AC;
+  }
+  
+  @keyframes highlight {
+    0% { background-color: rgba(56, 178, 172, 0.1); }
+    50% { background-color: rgba(56, 178, 172, 0.2); }
+    100% { background-color: transparent; }
+  }
+  
+  .success-ripple {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #48BB78;
+    border-radius: 50%;
+    margin-right: 5px;
+    animation: pulsate 1.5s ease infinite;
+  }
+  
+  @keyframes pulsate {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  .success-fade-out {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+  }
+  
+  body.resizing {
+    cursor: ns-resize;
+  }
+  
+  .resize-handle.active {
+    color: #18A0FB;
+    background-color: #EBF8FF;
+    transform: scale(1.2);
+  }
+  
+  .section-focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  
+  /* Option icons styling */
+  .option-icon {
+    display: inline-block;
+    margin-right: 6px;
+    animation: pop 0.3s ease;
+  }
+  
+  @keyframes pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  
+  .footer-credits {
+    margin-top: 5px;
+    font-weight: 500;
+    color: #A0AEC0;
   }
 </style>
 
@@ -324,13 +589,13 @@
       </div>
       <div class="radio-group">
         <label class="radio-option selected" id="post-option">
-          <input type="radio" name="content-type" value="post" checked> 📱 Instagram Post
+          <input type="radio" name="content-type" value="post" checked> <span class="option-icon">📱</span> Instagram Post
         </label>
         <label class="radio-option" id="story-option">
-          <input type="radio" name="content-type" value="story"> 📖 Instagram Story
+          <input type="radio" name="content-type" value="story"> <span class="option-icon">📖</span> Instagram Story
         </label>
         <label class="radio-option" id="market-recap-option">
-          <input type="radio" name="content-type" value="market-recap"> 📊 Market Recap
+          <input type="radio" name="content-type" value="market-recap"> <span class="option-icon">📊</span> Market Recap
         </label>
       </div>
     </div>
@@ -342,10 +607,10 @@
       </div>
       <div class="radio-group">
         <label class="radio-option" id="breaking-option">
-          <input type="radio" name="template-type" value="breaking" checked> 🔴 Breaking News
+          <input type="radio" name="template-type" value="breaking" checked> <span class="option-icon">🔴</span> Breaking News
         </label>
         <label class="radio-option" id="non-breaking-option">
-          <input type="radio" name="template-type" value="non-breaking"> 📣 Non-Breaking
+          <input type="radio" name="template-type" value="non-breaking"> <span class="option-icon">📣</span> Non-Breaking
         </label>
       </div>
     </div>
@@ -382,7 +647,7 @@
     <div class="section">
       <div class="checkbox-option" id="cta-checkbox">
         <input type="checkbox" id="use-cta">
-        <label for="use-cta">🔗 Include CTA (Call to Action)</label>
+        <label for="use-cta"><span class="option-icon">🔗</span> Include CTA (Call to Action)</label>
       </div>
       
       <div id="cta-options" class="cta-options disabled-section">
@@ -409,7 +674,7 @@
     
     <div class="checkbox-option" id="force-option">
       <input type="checkbox" id="force-create">
-      <label for="force-create">⚠️ Force Create (bypass duplicate check)</label>
+      <label for="force-create"><span class="option-icon">⚠️</span> Force Create (bypass duplicate check)</label>
     </div>
   </div>
   
@@ -433,10 +698,57 @@
   
   <div class="footer">
     This plugin creates news posts with headlines, body text, CTAs, and appropriate disclaimers.
+    <div class="footer-credits">Made with ❤️ for your news workflow</div>
   </div>
 </div>
 
+<div class="resize-handle" title="Drag to resize">⟱</div>
+
 <script>
+  // Add loading state for buttons
+  function setButtonLoading(button, isLoading) {
+    if (isLoading) {
+      const originalText = button.innerHTML;
+      button.setAttribute('data-original-text', originalText);
+      button.innerHTML = '<div class="loading-spinner"></div> Processing...';
+      button.classList.add('loading');
+    } else {
+      const originalText = button.getAttribute('data-original-text');
+      if (originalText) {
+        button.innerHTML = originalText;
+      }
+      button.classList.remove('loading');
+    }
+  }
+
+  // Add subtle entrance animations when the UI loads
+  document.addEventListener('DOMContentLoaded', function() {
+    // Animate sections entrance
+    const sections = document.querySelectorAll('.section');
+    sections.forEach((section, index) => {
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(10px)';
+      
+      setTimeout(() => {
+        section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        section.style.opacity = '1';
+        section.style.transform = 'translateY(0)';
+      }, 100 + (index * 50)); // Stagger the animations
+    });
+    
+    // Add focus effects for inputs
+    const inputs = document.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+      input.addEventListener('focus', function() {
+        this.closest('.section')?.classList.add('section-focus');
+      });
+      
+      input.addEventListener('blur', function() {
+        this.closest('.section')?.classList.remove('section-focus');
+      });
+    });
+  });
+
   // Create post functionality
   let isCreating = false;
   
@@ -448,20 +760,32 @@
       option.classList.add('selected');
     }
     
-    // Add click event
+    // Add click event with improved visual feedback
     option.addEventListener('click', () => {
+      // Add a subtle ripple effect
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple-effect');
+      option.appendChild(ripple);
+      
+      // Remove ripple after animation completes
+      setTimeout(() => {
+        ripple.remove();
+      }, 500);
+      
       // Remove selected class from all options in group
       const name = input.name;
       document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
         radio.closest('.radio-option').classList.remove('selected');
       });
       
-      // Add selected class to this option
-      option.classList.add('selected');
-      input.checked = true;
-      
-      // Trigger change event for the input
-      input.dispatchEvent(new Event('change'));
+      // Add selected class to this option with a slight delay for better visual effect
+      setTimeout(() => {
+        option.classList.add('selected');
+        input.checked = true;
+        
+        // Trigger change event for the input
+        input.dispatchEvent(new Event('change'));
+      }, 50);
     });
   });
   
@@ -473,19 +797,31 @@
       option.classList.add('selected');
     }
     
-    // Add click event
+    // Add click event with improved visual feedback
     option.addEventListener('click', () => {
+      // Add a subtle ripple effect
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple-effect');
+      option.appendChild(ripple);
+      
+      // Remove ripple after animation completes
+      setTimeout(() => {
+        ripple.remove();
+      }, 500);
+      
       // Remove selected class from all options
       document.querySelectorAll('.cta-option').forEach(opt => {
         opt.classList.remove('selected');
       });
       
-      // Add selected class to this option
-      option.classList.add('selected');
-      input.checked = true;
-      
-      // Trigger change event for the input
-      input.dispatchEvent(new Event('change'));
+      // Add selected class to this option with a slight delay
+      setTimeout(() => {
+        option.classList.add('selected');
+        input.checked = true;
+        
+        // Trigger change event for the input
+        input.dispatchEvent(new Event('change'));
+      }, 50);
     });
   });
   
@@ -498,8 +834,18 @@
       option.classList.add('checked');
     }
     
-    // Add click event
+    // Add click event with improved visuals
     option.addEventListener('click', () => {
+      // Add a subtle ripple effect
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple-effect');
+      option.appendChild(ripple);
+      
+      // Remove ripple after animation completes
+      setTimeout(() => {
+        ripple.remove();
+      }, 500);
+      
       input.checked = !input.checked;
       
       if (input.checked) {
@@ -513,13 +859,23 @@
     });
   });
   
-  // Show/hide CTA options based on checkbox
+  // Show/hide CTA options based on checkbox with smooth animation
   document.getElementById('use-cta').addEventListener('change', function() {
     const ctaOptions = document.getElementById('cta-options');
     if (this.checked) {
+      ctaOptions.style.maxHeight = '0';
       ctaOptions.classList.remove('disabled-section');
+      setTimeout(() => {
+        ctaOptions.style.maxHeight = ctaOptions.scrollHeight + 'px';
+      }, 10);
     } else {
-      ctaOptions.classList.add('disabled-section');
+      ctaOptions.style.maxHeight = ctaOptions.scrollHeight + 'px';
+      setTimeout(() => {
+        ctaOptions.style.maxHeight = '0';
+        setTimeout(() => {
+          ctaOptions.classList.add('disabled-section');
+        }, 300);
+      }, 10);
     }
     updateButtonText();
   });
@@ -543,7 +899,15 @@
       buttonText += ` with ${ctaEmoji} ${ctaType.charAt(0).toUpperCase() + ctaType.slice(1)} CTA`;
     }
     
-    document.getElementById('create-post').innerHTML = `<span class="button-icon">✨</span> ${buttonText}`;
+    const createButton = document.getElementById('create-post');
+    // Save current button text
+    const currentText = createButton.innerHTML;
+    // Set new text with animation
+    createButton.style.opacity = '0.5';
+    setTimeout(() => {
+      createButton.innerHTML = `<span class="button-icon">✨</span> ${buttonText}`;
+      createButton.style.opacity = '1';
+    }, 150);
   }
   
   // Add event listeners for all form controls to update button text
@@ -557,7 +921,15 @@
     if (isCreating) return; // Prevent multiple rapid clicks
     
     isCreating = true;
-    setTimeout(() => { isCreating = false; }, 2000); // Reset after 2 seconds
+    
+    // Visual feedback when creating
+    const createButton = document.getElementById('create-post');
+    setButtonLoading(createButton, true);
+    
+    setTimeout(() => { 
+      isCreating = false;
+      setButtonLoading(createButton, false);
+    }, 2000); // Reset after 2 seconds
     
     const headline = document.getElementById('headline').value;
     const body = document.getElementById('body').value;
@@ -575,6 +947,15 @@
       errorEl.textContent = '⚠️ Please enter a headline.';
       errorEl.classList.add('visible');
       isCreating = false;
+      setButtonLoading(createButton, false);
+      
+      // Shake animation for the headline field to draw attention
+      const headlineField = document.getElementById('headline');
+      headlineField.classList.add('error-shake');
+      setTimeout(() => {
+        headlineField.classList.remove('error-shake');
+      }, 600);
+      
       return;
     }
     
@@ -632,6 +1013,7 @@
         }, '*');
       }
       isCreating = false;
+      setButtonLoading(document.getElementById('create-post'), false);
     }
   };
   
@@ -644,12 +1026,17 @@
   });
   
   document.getElementById('parse-app-data').onclick = () => {
+    // Visual feedback when parsing
+    const parseButton = document.getElementById('parse-app-data');
+    setButtonLoading(parseButton, true);
+    
     const pastedData = document.getElementById('paste-from-app').value.trim();
     
     if (!pastedData || !pastedData.includes('DUB_NEWS_DATA_START')) {
       const errorEl = document.getElementById('error');
       errorEl.textContent = '⚠️ Invalid data format. Please paste the complete output from the Python app.';
       errorEl.classList.add('visible');
+      setButtonLoading(parseButton, false);
       return;
     }
     
@@ -708,8 +1095,13 @@
       
       // Fill the form with the parsed data
       
-      // Content type
-      const contentType = parsedData['CONTENT_TYPE'] || 'post';
+      // Content type - Handle both formats
+      let contentType = parsedData['CONTENT_TYPE'] || 'post';
+      // Convert market_recap (underscore) to market-recap (hyphen) for UI
+      if (contentType === 'market_recap') {
+        contentType = 'market-recap';
+      }
+      
       document.querySelectorAll('input[name="content-type"]').forEach(input => {
         input.checked = input.value === contentType;
         if (input.checked) {
@@ -720,23 +1112,23 @@
       });
       
       // Handle UI visibility based on content type
-      const captionField = document.getElementById('caption').closest('.section');
-      const ctaSection = document.getElementById('cta-checkbox').closest('.section');
-      const templateTypeSection = document.querySelector('input[name="template-type"]').closest('.section');
+      let captionSection = document.getElementById('caption').closest('.section');
+      let ctaSection = document.getElementById('cta-checkbox').closest('.section');
+      let templateTypeSection = document.querySelector('input[name="template-type"]').closest('.section');
       
       if (contentType === 'story') {
-        captionField.style.display = 'none';
+        captionSection.style.display = 'none';
         ctaSection.style.display = 'none';
         templateTypeSection.style.display = 'block';
         // Ensure CTA is unchecked for stories
         document.getElementById('use-cta').checked = false;
         document.getElementById('cta-options').classList.add('disabled-section');
       } else if (contentType === 'market-recap') {
-        captionField.style.display = 'block';
+        captionSection.style.display = 'block';
         ctaSection.style.display = 'block';
         templateTypeSection.style.display = 'none';
       } else {
-        captionField.style.display = 'block';
+        captionSection.style.display = 'block';
         ctaSection.style.display = 'block';
         templateTypeSection.style.display = 'block';
       }
@@ -754,14 +1146,29 @@
         });
       }
       
-      // Headline
-      document.getElementById('headline').value = parsedData['HEADLINE'] || '';
+      // Headline - with animation
+      const headlineField = document.getElementById('headline');
+      headlineField.value = parsedData['HEADLINE'] || '';
+      headlineField.classList.add('field-updated');
+      setTimeout(() => {
+        headlineField.classList.remove('field-updated');
+      }, 800);
       
-      // Body
-      document.getElementById('body').value = parsedData['BODY'] || '';
+      // Body - with animation
+      const bodyField = document.getElementById('body');
+      bodyField.value = parsedData['BODY'] || '';
+      bodyField.classList.add('field-updated');
+      setTimeout(() => {
+        bodyField.classList.remove('field-updated');
+      }, 800);
       
-      // Caption (Instagram)
-      document.getElementById('caption').value = parsedData['INSTAGRAM'] || '';
+      // Caption (Instagram) - with animation
+      const captionInput = document.getElementById('caption');
+      captionInput.value = parsedData['INSTAGRAM'] || '';
+      captionInput.classList.add('field-updated');
+      setTimeout(() => {
+        captionInput.classList.remove('field-updated');
+      }, 800);
       
       // Source (store in hidden field)
       if (parsedData['SOURCE']) {
@@ -808,18 +1215,27 @@
       // Hide any error message
       document.getElementById('error').classList.remove('visible');
       
-      // Add success message
+      // Add success message with animation
       const successMessageDiv = document.createElement('div');
       successMessageDiv.className = 'success-message';
-      successMessageDiv.textContent = '✅ Successfully parsed data! Click "Create News Post" to generate.';
+      successMessageDiv.textContent = 'Successfully parsed data! Click "Create News Post" to generate.';
+      
+      // Add ripple animation in the background
+      successMessageDiv.innerHTML = '<span class="success-ripple"></span> Successfully parsed data! Click "Create News Post" to generate.';
       
       // Insert after the parse button
       const parseButton = document.getElementById('parse-app-data');
       parseButton.parentNode.insertBefore(successMessageDiv, parseButton.nextSibling);
       
+      // Reset the button loading state
+      setButtonLoading(parseButton, false);
+      
       // Remove success message after 5 seconds
       setTimeout(() => {
-        successMessageDiv.remove();
+        successMessageDiv.classList.add('success-fade-out');
+        setTimeout(() => {
+          successMessageDiv.remove();
+        }, 300);
       }, 5000);
       
     } catch (error) {
@@ -827,64 +1243,38 @@
       const errorEl = document.getElementById('error');
       errorEl.textContent = `⚠️ Error parsing data: ${error.message}`;
       errorEl.classList.add('visible');
+      setButtonLoading(parseButton, false);
     }
   };
   
-  // Add this to handle tab switching
+  // Add this to handle tab switching with animation - simplified version
   document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      // Remove active class from all tabs
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.addEventListener('click', function() {
+      // Skip if this tab is already active
+      if (this.classList.contains('active')) return;
       
-      // Add active class to current tab
-      tab.classList.add('active');
-      const tabId = tab.getAttribute('data-tab');
-      document.getElementById(tabId).classList.add('active');
+      const tabId = this.getAttribute('data-tab');
+      const targetContent = document.getElementById(tabId);
+      
+      // Handle tab switching
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      targetContent.classList.add('active');
+      
+      // Simple fade-in animation
+      targetContent.style.opacity = '0';
+      setTimeout(() => {
+        targetContent.style.opacity = '1';
+      }, 50);
     });
   });
 
-  // Update content type based on the chosen option
-  document.querySelectorAll('input[name="content-type"]').forEach(input => {
-    input.addEventListener('change', function() {
-      const contentType = this.value;
-      
-      // Show/hide Instagram caption field based on content type
-      const captionField = document.getElementById('caption').closest('.section');
-      
-      // Also handle CTA section visibility
-      const ctaSection = document.getElementById('cta-checkbox').closest('.section');
-      
-      // Handle template type section visibility
-      const templateTypeSection = document.querySelector('input[name="template-type"]').closest('.section');
-      
-      if (contentType === 'story') {
-        captionField.style.display = 'none';
-        ctaSection.style.display = 'none';
-        templateTypeSection.style.display = 'block';
-        // Ensure CTA is unchecked for stories
-        document.getElementById('use-cta').checked = false;
-        document.getElementById('cta-options').classList.add('disabled-section');
-      } else if (contentType === 'market-recap') {
-        captionField.style.display = 'block';
-        ctaSection.style.display = 'block';
-        templateTypeSection.style.display = 'none';
-      } else {
-        captionField.style.display = 'block';
-        ctaSection.style.display = 'block';
-        templateTypeSection.style.display = 'block';
-      }
-      
-      updateButtonText();
-    });
-  });
-  
-  // Add resize functionality
-  const resizeHandle = document.createElement('div');
-  resizeHandle.className = 'resize-handle';
-  resizeHandle.innerHTML = '⟱';
-  resizeHandle.title = 'Drag to resize';
-  document.body.appendChild(resizeHandle);
+  // Add resize functionality with support for wider UI
+  const resizeHandle = document.querySelector('.resize-handle');
   
   let startHeight, startY;
   
@@ -895,6 +1285,10 @@
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
     
+    // Add visual feedback during resize
+    document.body.classList.add('resizing');
+    resizeHandle.classList.add('active');
+    
     e.preventDefault();
   });
   
@@ -902,10 +1296,11 @@
     const deltaY = e.clientY - startY;
     const newHeight = startHeight + deltaY;
     
-    // Send message to resize
+    // Send message to resize with wider width
     parent.postMessage({
       pluginMessage: {
         type: 'resize',
+        width: 680, // Increased width even more
         height: Math.max(400, newHeight)
       }
     }, '*');
@@ -914,5 +1309,9 @@
   function stopResize() {
     document.removeEventListener('mousemove', resize);
     document.removeEventListener('mouseup', stopResize);
+    
+    // Remove visual feedback
+    document.body.classList.remove('resizing');
+    resizeHandle.classList.remove('active');
   }
 </script> 
