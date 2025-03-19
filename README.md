@@ -1,19 +1,49 @@
 # Dub News Generator
 
-This Hugging Face Space generates news content for the Dub News Figma plugin. It processes news articles using GPT-4o to create:
+Generate Instagram posts and stories from news articles.
 
-1. Headlines
-2. Body text summaries
-3. Instagram captions
+## Features
 
-## How to Use
+- **URL Processing**: Paste a news article URL to auto-extract and process content
+- **Manual Input**: Directly paste article text for processing
+- **AI-Powered Content Generation**: Use OpenAI to generate headlines, body text, and captions
 
-1. Enter your OpenAI API key (or add it as a Space secret)
-2. Paste a news article
-3. Select whether it's breaking news
-4. Add any custom instructions (optional)
-5. Click "Generate Content"
-6. Copy the formatted output to use in your Figma plugin
+## Setup
+
+1. Install the required packages:
+   ```
+   pip install -r requirements.txt
+   ```
+
+2. Set up your OpenAI API key:
+   - Create a `.env` file in the project directory
+   - Add your API key: `OPENAI_API_KEY=your_api_key_here`
+   - Alternatively, input your API key directly in the app interface
+
+## Running the Application
+
+### Main Application:
+```
+python app.py
+```
+
+### URL Processing Demo:
+```
+python url_processor.py
+```
+
+## Testing the Article Scraper:
+```
+python article_scraper.py
+```
+
+## Integration Options
+
+You can use these components in the following ways:
+
+1. **URL Processor** - Run the standalone URL processor to test the article scraping functionality
+2. **Article Scraper** - Import the scraping functions into your own workflow
+3. **Main Application** - Continue using the original app.py for your existing workflow
 
 ## Environment Variables
 

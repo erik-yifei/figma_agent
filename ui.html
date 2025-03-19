@@ -329,6 +329,9 @@
         <label class="radio-option" id="story-option">
           <input type="radio" name="content-type" value="story"> 📖 Instagram Story
         </label>
+        <label class="radio-option" id="market-recap-option">
+          <input type="radio" name="content-type" value="market-recap"> 📊 Market Recap
+        </label>
       </div>
     </div>
     
@@ -526,7 +529,7 @@
     const contentType = document.querySelector('input[name="content-type"]:checked').value;
     const templateType = document.querySelector('input[name="template-type"]:checked').value;
     const useCta = document.getElementById('use-cta').checked;
-    let buttonText = `✨ Create ${contentType === 'story' ? '📖 Story' : '📱 Post'} - ${templateType === 'breaking' ? '🔴 Breaking' : '📣 Non-Breaking'}`;
+    let buttonText = `✨ Create ${contentType === 'story' ? '📖 Story' : contentType === 'market-recap' ? '📊 Market Recap' : '📱 Post'} - ${templateType === 'breaking' ? '🔴 Breaking' : '📣 Non-Breaking'}`;
     
     if (useCta) {
       const ctaType = document.querySelector('input[name="cta-type"]:checked').value;
@@ -716,24 +719,40 @@
         }
       });
       
-      // Show/hide Instagram caption field based on content type
+      // Handle UI visibility based on content type
       const captionField = document.getElementById('caption').closest('.section');
+      const ctaSection = document.getElementById('cta-checkbox').closest('.section');
+      const templateTypeSection = document.querySelector('input[name="template-type"]').closest('.section');
+      
       if (contentType === 'story') {
         captionField.style.display = 'none';
+        ctaSection.style.display = 'none';
+        templateTypeSection.style.display = 'block';
+        // Ensure CTA is unchecked for stories
+        document.getElementById('use-cta').checked = false;
+        document.getElementById('cta-options').classList.add('disabled-section');
+      } else if (contentType === 'market-recap') {
+        captionField.style.display = 'block';
+        ctaSection.style.display = 'block';
+        templateTypeSection.style.display = 'none';
       } else {
         captionField.style.display = 'block';
+        ctaSection.style.display = 'block';
+        templateTypeSection.style.display = 'block';
       }
       
-      // Template type
-      const templateType = parsedData['TEMPLATE_TYPE'] || 'non-breaking';
-      document.querySelectorAll('input[name="template-type"]').forEach(input => {
-        input.checked = input.value === templateType;
-        if (input.checked) {
-          input.closest('.radio-option').classList.add('selected');
-        } else {
-          input.closest('.radio-option').classList.remove('selected');
-        }
-      });
+      // Template type (only if not market-recap)
+      if (contentType !== 'market-recap') {
+        const templateType = parsedData['TEMPLATE_TYPE'] || 'non-breaking';
+        document.querySelectorAll('input[name="template-type"]').forEach(input => {
+          input.checked = input.value === templateType;
+          if (input.checked) {
+            input.closest('.radio-option').classList.add('selected');
+          } else {
+            input.closest('.radio-option').classList.remove('selected');
+          }
+        });
+      }
       
       // Headline
       document.getElementById('headline').value = parsedData['HEADLINE'] || '';
@@ -750,13 +769,13 @@
         console.log("Source identified:", parsedData['SOURCE']);
       }
       
-      // CTA
+      // CTA (only if not story)
       const useCta = (parsedData['USE_CTA'] || '').toLowerCase() === 'true';
-      document.getElementById('use-cta').checked = useCta;
+      document.getElementById('use-cta').checked = useCta && contentType !== 'story';
       
       // Update UI to show/hide CTA options
       const ctaOptions = document.getElementById('cta-options');
-      if (useCta) {
+      if (useCta && contentType !== 'story') {
         ctaOptions.classList.remove('disabled-section');
         
         // Set CTA type
@@ -833,18 +852,27 @@
       // Show/hide Instagram caption field based on content type
       const captionField = document.getElementById('caption').closest('.section');
       
-      // Also handle CTA section visibility - hide for stories
+      // Also handle CTA section visibility
       const ctaSection = document.getElementById('cta-checkbox').closest('.section');
+      
+      // Handle template type section visibility
+      const templateTypeSection = document.querySelector('input[name="template-type"]').closest('.section');
       
       if (contentType === 'story') {
         captionField.style.display = 'none';
         ctaSection.style.display = 'none';
+        templateTypeSection.style.display = 'block';
         // Ensure CTA is unchecked for stories
         document.getElementById('use-cta').checked = false;
         document.getElementById('cta-options').classList.add('disabled-section');
+      } else if (contentType === 'market-recap') {
+        captionField.style.display = 'block';
+        ctaSection.style.display = 'block';
+        templateTypeSection.style.display = 'none';
       } else {
         captionField.style.display = 'block';
         ctaSection.style.display = 'block';
+        templateTypeSection.style.display = 'block';
       }
       
       updateButtonText();
